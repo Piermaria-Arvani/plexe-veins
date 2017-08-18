@@ -16,6 +16,7 @@
 //
 
 #include "veins/modules/application/platooning/protocols/BaseProtocol.h"
+#include "veins/modules/application/platooning/traffic/PlatoonsTrafficManager.h"
 
 #include "veins/modules/mac/ieee80211p/Mac1609_4.h"
 
@@ -52,6 +53,7 @@ void BaseProtocol::initialize(int stage) {
 		traci = mobility->getCommandInterface();
 		traciVehicle = mobility->getVehicleCommandInterface();
 		positionHelper = FindModule<BasePositionHelper*>::findSubModule(getParentModule());
+
 
 		//this is the id of the vehicle. used also as network address
 		myId = positionHelper->getId();
@@ -154,8 +156,13 @@ void BaseProtocol::handleSelfMsg(cMessage *msg) {
 
 void BaseProtocol::sendPlatooningMessage(int destinationAddress) {
 
+	newpositionhelper = FindModule<NewPositionHelper*>::findSubModule(getParentModule());
+
 	//vehicle's data to be included in the message
 	double speed, acceleration, controllerAcceleration, sumoPosX, sumoPosY, sumoTime;
+	int lane;
+	bool leader ;;
+	std::vector<int> ids;
 
 	//actual packets
 	UnicastMessage *unicast;
@@ -171,6 +178,9 @@ void BaseProtocol::sendPlatooningMessage(int destinationAddress) {
 	Coord position(coords.x, coords.y, 0);
 	double time = veinsTime;
 
+	lane = positionHelper->getPlatoonLane();
+	leader = newpositionhelper->isLeader(myId);
+	ids = newpositionhelper->getPlatoon();
 	//create and send beacon
 	unicast = new UnicastMessage("", BEACON_TYPE);
 	unicast->setDestination(-1);
@@ -195,7 +205,10 @@ void BaseProtocol::sendPlatooningMessage(int destinationAddress) {
 	pkt->setRelayerId(myId);
 	pkt->setKind(BEACON_TYPE);
 	pkt->setByteLength(packetSize);
+	pkt->setLane(lane);
 	pkt->setSequenceNumber(seq_n++);
+	pkt->setLeader(leader);
+	pkt->setIds(ids);
 
 	//put platooning beacon into the message for the UnicastProtocol
 	unicast->encapsulate(pkt);
@@ -226,7 +239,6 @@ void BaseProtocol::handleUnicastMsg(UnicastMessage *unicast) {
 				leaderDelayIdOut.record(myId);
 			}
 			lastLeaderMsgTime = simTime();
-
 		}
 		if (positionHelper->getFrontId() == epkt->getVehicleId()) {
 			//check if this is at least the second message we have received
@@ -283,15 +295,17 @@ void BaseProtocol::receiveSignal(cComponent *source, simsignal_t signalID, bool 
 }
 
 void BaseProtocol::handleMessage(cMessage *msg) {
-	if (msg->getArrivalGateId() >= minUpperId && msg->getArrivalGateId() <= maxUpperId)
+	if (msg->getArrivalGateId() >= minUpperId && msg->getArrivalGateId() <= maxUpperId){
 		handleUpperMsg(msg);
-	else
+	}else{
 		BaseApplLayer::handleMessage(msg);
+	}
 }
 
 void BaseProtocol::handleLowerMsg(cMessage *msg) {
 
 	UnicastMessage *unicast;
+
 
 	unicast = dynamic_cast<UnicastMessage *>(msg);
 	handleUnicastMsg(unicast);
@@ -320,25 +334,32 @@ void BaseProtocol::handleUpperControl(cMessage *msg) {
 void BaseProtocol::handleLowerControl(cMessage *msg) {
 	UnicastProtocolControlMessage *ctrl = dynamic_cast<UnicastProtocolControlMessage *>(msg);
 	if (ctrl) {
-		sendControlUp(ctrl);
+		for (int i = 0; i < usedGates; i++) {
+			UnicastProtocolControlMessage *duplicate = ctrl->dup();
+			send(duplicate, "upperControlOut", i);
+		}
 	}
+	delete msg;
 }
 
 void BaseProtocol::messageReceived(PlatooningBeacon *pkt, UnicastMessage *unicast) {
 	ASSERT2(false, "BaseProtocol::messageReceived() not overridden by subclass");
 }
 
-void BaseProtocol::registerApplication(int applicationId, cGate* appInputGate, cGate* appOutputGate) {
+void BaseProtocol::registerApplication(int applicationId, cGate* appInputGate, cGate* appOutputGate, cGate* appControlInputGate) {
 	if (usedGates == MAX_GATES_COUNT)
 		throw cRuntimeError("BaseProtocol: application with id=%d tried to register, but no space left", applicationId);
 	//connect gates, if not already connected. a gate might be already
 	//connected if an application is registering for multiple packet types
-	cGate *upperIn, *upperOut;
+	cGate *upperIn, *upperOut, *upperControlOut;
 	if (!appInputGate->isConnected() || !appOutputGate->isConnected()) {
 		if (appOutputGate->isConnected() || appOutputGate->isConnected())
 			throw cRuntimeError("BaseProtocol: the application should not be connected but one if its gates is connected");
 		upperOut = gate("upperLayerOut", usedGates);
 		upperOut->connectTo(appInputGate);
+		//connect control gate as well
+		upperControlOut = gate("upperControlOut", usedGates);
+		upperControlOut->connectTo(appControlInputGate);
 		upperIn = gate("upperLayerIn", usedGates);
 		appOutputGate->connectTo(upperIn);
 		connections[appInputGate] = upperOut;

@@ -83,6 +83,14 @@ void PlatoonsTrafficManager::insertPlatoons() {
 			automated.position = currentPos + laneOffset[l];
 			automated.lane = l;
 			addVehicleToQueue(0, automated);
+			if ( currentCar == 0){
+				//inserts a new leader
+				platoons.push_back(platoon());
+				platoons.back().push_back(i);
+			}else{
+				//inserts a vehicle into the leader vector
+				insertFollower(i,(i%nLanes));
+			}
 		}
 		currentCar++;
 		if (currentCar == platoonSize) {
@@ -96,8 +104,59 @@ void PlatoonsTrafficManager::insertPlatoons() {
 		}
 	}
 
+	printMatrix();
 	delete [] laneOffset;
 
+}
+
+void PlatoonsTrafficManager::insertFollower(int followerId, int leaderId){
+	int j = 0;
+	unsigned int i = 0;
+	for(; i < platoons.size(); i++){
+		if ( leaderId == platoons[i][j]){
+			platoons[i].push_back(followerId);
+		}
+	}
+}
+
+void PlatoonsTrafficManager::printMatrix(){
+	std::cout << endl;
+	for(std::vector<std::vector<int> >::iterator it = platoons.begin(); it != platoons.end(); ++it){
+		for(std::vector<int>::iterator jt = it->begin(); jt != it->end(); ++jt){
+			std::cout << *jt;
+		}
+		std::cout << endl;
+	}
+}
+
+bool PlatoonsTrafficManager::isLeader(unsigned int myId){
+    bool leader = (myId < platoons.size())? true : false;;
+
+    return leader;
+}
+
+platoon& PlatoonsTrafficManager::getLeaderInfo(int myId){
+	int index = -1;
+	for (unsigned int i = 0; i < platoons.size(); i++){
+		if (platoons[i][0]==myId){
+			index = i;;
+		}
+	}
+	return platoons[index];
+}
+
+
+void PlatoonsTrafficManager::getFollowerInfo(int myId, int& leaderId, int& frontVehicle, int& backVehicle){
+	for(unsigned int i = 0; i < platoons.size(); i++){
+		for(unsigned int j = 0; j < platoons[i].size(); j++){
+			if (platoons[i][j] == myId){
+				leaderId = platoons[i][0];
+				frontVehicle = platoons[i][j-1];
+				backVehicle = platoons [i][j+1];
+				return;
+			}
+		}
+	}
 }
 
 void PlatoonsTrafficManager::finish() {

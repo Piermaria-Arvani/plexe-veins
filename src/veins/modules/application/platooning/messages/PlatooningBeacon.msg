@@ -15,15 +15,22 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 //
 
+cplusplus {{ typedef std::vector<int> platoon; }} // C++ typedef
+class noncobject platoon; // announcement for the message compiler
+
 packet PlatooningBeacon {
-	//id of the originator
-	int vehicleId = 0;
-	//id of the sender. relayerId == vehicleId on first hope
-	int relayerId = 0;
-	double acceleration = 0;
-	double speed = 0;
-	double positionX = 0;
-	double positionY = 0;
-	double time = 0;
-	int sequenceNumber = 0;
+    //id of the originator
+    int vehicleId = 0;
+    //id of the sender. relayerId == vehicleId on first hope
+    int relayerId = 0;
+    double acceleration = 0;
+    double speed = 0;
+    double positionX = 0;
+    double positionY = 0;
+    double time = 0;
+    int sequenceNumber = 0;
+    int lane = -1;
+    //vector of the ids of the platoon's vehicles
+    platoon ids ;
+    bool leader = false;
 }

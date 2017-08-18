@@ -60,8 +60,28 @@ void BaseApp::initialize(int stage) {
 		protocol = FindModule<BaseProtocol*>::findSubModule(getParentModule());
 		myId = positionHelper->getId();
 
+		if (traciVehicle->getVType().compare("vtypeauto") == 0){
+			newPostionHelper = FindModule<NewPositionHelper*>::findSubModule(getParentModule());
+			manager = FindModule<PlatoonsTrafficManager *>().findGlobalModule();
+
+			if(manager->isLeader(myId)){
+				platoon p = manager->getLeaderInfo(myId);
+				newPostionHelper->setIsLeader(true);
+				newPostionHelper->setPlatoon(p);
+			}else{
+				int myLeader = -1;
+				int frontVehicle = -1;
+				int backVehicle = -1;
+				manager->getFollowerInfo(myId, myLeader,frontVehicle,backVehicle);
+				newPostionHelper->setId(myId);
+				newPostionHelper->setLeaderId(myLeader);
+				newPostionHelper->setFrontId(frontVehicle);
+				newPostionHelper->setIsLeader(false);
+			}
+		}
+
 		//connect application to protocol
-		protocol->registerApplication(BaseProtocol::BEACON_TYPE, gate("lowerLayerIn"), gate("lowerLayerOut"));
+		protocol->registerApplication(BaseProtocol::BEACON_TYPE, gate("lowerLayerIn"), gate("lowerLayerOut"), gate("lowerControlIn"));
 
 		recordData = new cMessage("recordData");
 		//init statistics collection. round to 0.1 seconds
@@ -90,7 +110,6 @@ void BaseApp::finish() {
 }
 
 void BaseApp::handleLowerMsg(cMessage *msg) {
-
 	UnicastMessage *unicast = dynamic_cast<UnicastMessage *>(msg);
 	ASSERT2(unicast, "received a frame not of type UnicastMessage");
 
@@ -102,12 +121,30 @@ void BaseApp::handleLowerMsg(cMessage *msg) {
 		PlatooningBeacon *epkt = dynamic_cast<PlatooningBeacon *>(enc);
 		ASSERT2(epkt, "received UnicastMessage does not contain a PlatooningBeacon");
 
-		if (positionHelper->isInSamePlatoon(epkt->getVehicleId())) {
-
+		std::vector<int> ids = epkt->getIds();
+		//if the first vehicle in the array is my leader then the one who sent the beacon is in my platoon
+		if (ids[0] == positionHelper->getLeaderId()) {
 			//if the message comes from the leader
 			if (epkt->getVehicleId() == positionHelper->getLeaderId()) {
 				traciVehicle->setPlatoonLeaderData(epkt->getSpeed(), epkt->getAcceleration(), epkt->getPositionX(), epkt->getPositionY(), epkt->getTime());
 				traciVehicle->setControllerFakeData(0, -1, 0, epkt->getSpeed(), epkt->getAcceleration());
+
+				std::vector<int> ids = epkt->getIds();
+
+				//if the vehicles array that the leader sent me is different from mine, then modify it
+				if((unsigned int) newPostionHelper->getPlatoonSize() != ids.size()){
+					for(unsigned int i = 0; i < ids.size(); i++){
+						if (ids[i] == myId){
+							positionHelper->setFrontId(ids[i-1]);
+							newPostionHelper->setPlatoon(ids);
+						}
+					}
+				}
+
+				if (epkt->getLane() != traciVehicle->getLaneIndex()){
+					traciVehicle->setFixedLane(epkt->getLane());
+					positionHelper->setPlatoonLane(epkt->getLane());
+				}
 			}
 			//if the message comes from the vehicle in front
 			if (epkt->getVehicleId() == positionHelper->getFrontId()) {

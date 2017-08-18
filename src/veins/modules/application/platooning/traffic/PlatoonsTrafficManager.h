@@ -19,6 +19,7 @@
 #define PLATOONSTRAFFICMANAGER_H_
 
 #include <veins/modules/mobility/traci/TraCIBaseTrafficManager.h>
+typedef std::vector<int> platoon;
 
 class PlatoonsTrafficManager : public TraCIBaseTrafficManager
 {
@@ -26,6 +27,10 @@ class PlatoonsTrafficManager : public TraCIBaseTrafficManager
 	public:
 
 		virtual void initialize(int stage);
+		virtual void printMatrix();
+		virtual bool isLeader(unsigned int myId);
+		virtual platoon& getLeaderInfo(int myId);
+		virtual void getFollowerInfo(int myId, int& leaderId, int& frontVehicle, int& backVehicle);
 		virtual void finish();
 
 		PlatoonsTrafficManager() {
@@ -44,6 +49,9 @@ class PlatoonsTrafficManager : public TraCIBaseTrafficManager
 
 		//this is used to start traffic generation
 		cMessage *insertPlatoonMessage;
+
+		//inserisce un nuovo veicolo
+		virtual void insertFollower(int followerId, int leaderId);
 
 		void insertPlatoons();
 
@@ -71,6 +79,8 @@ class PlatoonsTrafficManager : public TraCIBaseTrafficManager
 
 		virtual void scenarioLoaded();
 
+	private:
+		std::vector<platoon> platoons;
 };
 
 #endif

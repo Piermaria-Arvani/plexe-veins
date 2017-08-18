@@ -16,20 +16,24 @@
 //
 
 packet ManeuverMessage {
-	//id of the originator
-	int vehicleId;
-	//platoon id
-	int platoonId;
-	//message type
-	int messageType;
-	//platoon speed
-	double platoonSpeed;
-	//platoon lane
-	int platoonLane;
-	//id of vehicle in front of the joiner (G)
-	int frontVehicleId;
-	//id of the follower vehicle (F)
-	int followerVehicleId;
-	//platoon formation
-	int platoonFormation[];
+    //id of the originator
+    int vehicleId;
+    //platoon id
+    int platoonId;
+    //message type
+    int messageType;
+    //platoon speed
+    double platoonSpeed;
+    //my speed
+    double mySpeed;
+    //platoon lane
+    int platoonLane;
+    //last vehicle position
+    double posX;
+    //id of vehicle in front of the joiner (G)
+    int frontVehicleId;
+    //id of the follower vehicle (F)
+    int followerVehicleId;
+    //platoon formation
+    int platoonFormation[];
 }

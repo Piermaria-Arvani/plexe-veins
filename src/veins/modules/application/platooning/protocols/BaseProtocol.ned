@@ -40,5 +40,5 @@ moduleinterface BaseProtocol extends IBaseApplLayer
          input upperLayerIn[10];
          output upperLayerOut[10];
          input upperControlIn;
-         output upperControlOut;
+         output upperControlOut[10];
 }

@@ -44,6 +44,6 @@ simple SimplePlatooningBeaconing like BaseProtocol
         input lowerControlIn;
         output lowerControlOut;
         input upperControlIn;
-        output upperControlOut;
+        output upperControlOut[10];
 
 }

@@ -16,7 +16,7 @@
 //
 
 #include "veins/modules/application/platooning/UnicastProtocol.h"
-
+#include "veins/modules/application/platooning/utilities/NewPositionHelper.h"
 //to get recv power from lower layer
 #include "veins/base/phyLayer/PhyToMacControlInfo.h"
 #include "veins/modules/phy/DeciderResult80211.h"
@@ -62,7 +62,6 @@ void UnicastProtocol::initialize(int stage)
 
 void UnicastProtocol::handleUpperMsg(cMessage *msg)
 {
-
 	UnicastMessage *unicast = dynamic_cast<UnicastMessage *>(msg);
 	ASSERT2(unicast, "received a message from app layer which is not of type UnicastMessage");
 
@@ -71,6 +70,7 @@ void UnicastProtocol::handleUpperMsg(cMessage *msg)
 
 	if (queueSize != 0 && queue.size() == queueSize)
 	{
+
 		//queue is full. cannot enqueue the packet
 		UnicastProtocolControlMessage *queueFull = new UnicastProtocolControlMessage();
 		queueFull->setControlCommand(FULL_QUEUE);
@@ -181,7 +181,6 @@ void UnicastProtocol::sendMessageDown(int destination, cPacket *msg, int encapsu
 
 void UnicastProtocol::sendAck(const UnicastMessage *msg)
 {
-
 	UnicastMessage *unicast = new UnicastMessage("unicast");
 
 	unicast->setSource(macAddress);
@@ -316,6 +315,7 @@ void UnicastProtocol::handleAckMessage(const UnicastMessage *ack)
 
 void UnicastProtocol::handleLowerMsg(cMessage *msg)
 {
+
 	//first try to get the WSM out
 	WaveShortMessage *wsm = dynamic_cast<WaveShortMessage *>(msg);
 	ASSERT2(wsm, "expecting a WSM but something different received");

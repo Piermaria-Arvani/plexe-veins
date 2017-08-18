@@ -26,6 +26,8 @@
 #include "veins/modules/mobility/traci/TraCIMobility.h"
 
 #include "veins/modules/application/platooning/utilities/BasePositionHelper.h"
+#include "veins/modules/application/platooning/utilities/NewPositionHelper.h"
+typedef std::vector<int> platoon;
 
 //maximum number of upper layer apps that can connect (see .ned file)
 #define MAX_GATES_COUNT 10
@@ -64,6 +66,8 @@ class BaseProtocol : public BaseApplLayer {
 
 		//determines position and role of each vehicle
 		BasePositionHelper *positionHelper;
+
+		NewPositionHelper *newpositionhelper;
 
 		//id of this vehicle
 		int myId;
@@ -183,7 +187,7 @@ class BaseProtocol : public BaseApplLayer {
 		virtual void finish();
 
 		//register a higher level application by its id
-		void registerApplication(int applicationId, cGate* appInputGate, cGate* appOutputGate);
+				void registerApplication(int applicationId, cGate* appInputGate, cGate* appOutputGate, cGate* appControlInputGate);
 };
 
 #endif /* BASEPROTOCOL_H_ */

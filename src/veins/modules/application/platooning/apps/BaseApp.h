@@ -28,6 +28,8 @@
 #include "veins/modules/application/platooning/CC_Const.h"
 
 #include "veins/modules/application/platooning/utilities/BasePositionHelper.h"
+#include "veins/modules/application/platooning/traffic/PlatoonsTrafficManager.h"
+#include "veins/modules/application/platooning/utilities/NewPositionHelper.h"
 
 class BaseProtocol;
 
@@ -57,6 +59,9 @@ class BaseApp : public BaseApplLayer
 
 		//lower layer protocol
 		BaseProtocol *protocol;
+
+		PlatoonsTrafficManager *manager;
+		NewPositionHelper *newPostionHelper;
 
 		//time at which simulation should stop
 		SimTime simulationDuration;

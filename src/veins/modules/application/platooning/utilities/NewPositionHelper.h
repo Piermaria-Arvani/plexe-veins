@@ -1,0 +1,71 @@
+#ifndef NEWPOSITIONHELPER_H_
+#define NEWPOSITIONHELPER_H_
+
+#include "veins/modules/application/platooning/utilities/BasePositionHelper.h"
+typedef std::vector<int> platoon;
+
+class NewPositionHelper : public BasePositionHelper
+{
+
+	public:
+
+		virtual void initialize(int stage);
+		virtual void finish();
+
+		/**
+		 * Sets all the ids of the vehicles of the platoon
+		 */
+		virtual void setPlatoon(platoon p);
+
+		/**
+		 * Returns whether this vehicle is the leader of the platoon
+		 */
+		virtual bool isLeader (int id);
+		bool isInSamePlatoon(int vehicleId);
+
+		/**
+		 * Inserts a follower in the last position of the platoon
+		 */
+		virtual void insertFollower (int id);
+
+		/**
+		 * Removes a follower from the platoon
+		 */
+		virtual void removeFollower (int id);
+
+		/**
+		 * Returns the id of the last vehicle of the platoon
+		 */
+		virtual int getLastVehicle ();
+
+		/**
+		 * Returns all the ids of the vehicles of the platoon
+		 */
+		virtual platoon& getPlatoon();
+
+		/**
+		 * Returns the platoon size
+		 */
+		virtual int getPlatoonSize();
+
+		/**
+		 * Returns the id of the vehicle in front of me
+		 */
+		virtual int getFrontVehicle();
+
+		static int getIdFromExternalId(std::string externalId);
+
+	protected :
+		/*
+		 * Vector of ids
+		 */
+		platoon p;
+
+
+	public:
+		NewPositionHelper() : BasePositionHelper() {
+		}
+
+};
+
+#endif
