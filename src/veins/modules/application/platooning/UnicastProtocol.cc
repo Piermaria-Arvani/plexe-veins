@@ -296,6 +296,9 @@ void UnicastProtocol::handleAckMessage(const UnicastMessage *ack)
 		msgSequence = currentMsg->getSequenceNumber();
 		ackSequence = ack->getSequenceNumber();
 
+		if (ackSequence < msgSequence)
+			return;
+
 		ASSERT2(msgDestination == ackSource && msgSequence == ackSequence, "received a wrong ACK");
 
 		//we've got the ack. stop timeout timer

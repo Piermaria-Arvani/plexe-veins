@@ -27,7 +27,6 @@ class HighwayScenario : public BaseScenario
 			int					actualLane;
 			int                 joinLane;   //the lane chosen for joining the platoon
 			int                 joinerId;   //the id of the vehicle joining the platoon
-			bool				nextLaneIsFree; //Says if the lane beside is free
 			std::queue<int>		joiners;	//queue of vehicles that want to join
 			std::vector<int>	timeOutJoiners;
 		};
@@ -52,15 +51,12 @@ class HighwayScenario : public BaseScenario
 			LM_PROPOSE_AS_LEADER = 0,
 			LM_REFUSE_JOIN = 1,
 			LM_MOVE_IN_POSITION = 2,
-			LM_JOIN_TIME_OUT = 3,
-			LM_JOIN_PLATOON = 4,
-			JM_REQUEST_JOIN = 5,
-			JM_WAIT_REPLY_TIME_OUT = 6,
-			JM_MOVE_IN_POSITION_TIME_OUT = 7,
-			JM_IN_POSITION = 8,
-			JM_IN_PLATOON = 9,
-			LM_ABORT_MANEUVER = 10,
-			JM_ABORT_MANEUER = 11
+			LM_JOIN_PLATOON = 3,
+			JM_REQUEST_JOIN = 4,
+			JM_IN_POSITION = 5,
+			JM_IN_PLATOON = 6,
+			LM_ABORT_MANEUVER = 7,
+			JM_ABORT_MANEUER = 8
 		};
 
 		VEHICLE_STATES vehicleState;
@@ -69,7 +65,7 @@ class HighwayScenario : public BaseScenario
 		//the position of this vehicle in the platoon
 		int position;
 		int timer;
-		const int MAX_TIME = 10000;
+		const int MAX_TIME = 400;
 		//data known by the vehicle
 		struct VEHICLE_DATA vehicleData;
 		//message used to start the maneuver

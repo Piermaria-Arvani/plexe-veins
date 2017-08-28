@@ -4,7 +4,7 @@ source('omnet_helpers.R')
 library(ggplot2)
 
 #load simulation output file
-load('../results/JoinManeuver.Rdata')
+load('../results/Highway.Rdata')
 
 #plot speed as function of time for different controller parameters
 p1 <-	ggplot(allData, aes(x=time, y=speed*3.6, col=factor(nodeId))) +

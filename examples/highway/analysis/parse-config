@@ -6,10 +6,10 @@ file = map-config
 resdir = ../results
 
 [config]
-config = JoinManeuver
-out = JoinManeuver
+config = Highway
+out = Highway
 map    = %(defaultMap)s
 mapFile = %(file)s
-prefix = join
+prefix = highway
 merge = 1
 
