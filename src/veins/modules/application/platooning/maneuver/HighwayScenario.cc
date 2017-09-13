@@ -51,9 +51,9 @@ void HighwayScenario::prepareManeuverCars() {
 	std::cout<<" ruolo"<< role<<endl;
 	int lane = positionHelper->getId()%4;
 	std::cout<<" lane"<< lane<<endl;
-	vehicleData.minSpeed = 20;
-	vehicleData.maxSpeed = 40 ;
-	vehicleData.speed = 30 + (positionHelper->getId()%3) * 2;
+	vehicleData.minSpeed = (100/3.6) - 10;
+	vehicleData.maxSpeed = (100/3.6) + 10 ;
+	vehicleData.speed = (100/3.6) - (positionHelper->getId()%3);
 	std::cout<<"speed "<<vehicleData.speed<<endl;
 
 	switch (role){
@@ -162,6 +162,7 @@ void HighwayScenario::sendNegativeAck(int destination, int type){
 	sendUnicast(toSend, destination);
 }
 
+/*
 void HighwayScenario::controlNextJoiner(){
 	unsigned int i = 0;
 	while (i < vehicleData.timeOutJoiners.size() && !vehicleData.timeOutJoiners.empty() && !vehicleData.joiners.empty()){
@@ -173,36 +174,57 @@ void HighwayScenario::controlNextJoiner(){
 		i++;
 	}
 }
+*/
+void HighwayScenario::insertNewJoiner(int joinerId, double hisPosX){
+	Coord veinsPosition = mobility->getPositionAt(simTime());
+	//transform veins position into sumo position
+	Veins::TraCICoord coords = mobility->getManager()->omnet2traci(veinsPosition);
+	Coord position(coords.x, coords.y, 0);
+	//in order to find last vehicle position
+	double posX = position.x + (newPositionHelper->getPlatoonSize()*9);
 
-void HighwayScenario::insertNewJoiner(int joinerId){
-	vehicleData.joiners.push(joinerId);
+	double distance = posX - hisPosX;
+
+	JOINER_DATA temp;
+	temp.id = joinerId;
+	temp.distance = distance;
+	vehicleData.joiners.push_back(temp);
+
 }
+/*
+void HighwayScenario::insertNewJoiner(int joinerId){
+	std::cout<<"vehicle "<<positionHelper->getId()<<" insert in queue joiner "<<joinerId<<endl;
+	//vehicleData.joiners.push(joinerId);
+	vehicleData.joiners.push_back(joinerId);
+}*/
 
 void HighwayScenario::leaderDetectsInFrontVehicles(){
 	double distance, relativeSpeed;
 	traciVehicle->getRadarMeasurements(distance, relativeSpeed);
-	if(distance != -1 && distance < 10 && relativeSpeed < 0){
-		if(vehicleData.actualLane < 3){
-			traciVehicle->setFixedLane(vehicleData.actualLane + 1);
-			vehicleData.actualLane += 1;
+	if(distance != -1 && distance < 30 && relativeSpeed < 0){
+		if(vehicleData.actualLane == traciVehicle->getLaneIndex()){
+			int nextLane = vehicleData.actualLane < 3? vehicleData.actualLane + 1 : vehicleData.actualLane - 1;
+			vehicleData.actualLane = nextLane;
+			traciVehicle->setFixedLane(nextLane);
+			positionHelper->setPlatoonLane(vehicleData.actualLane);
 		}else{
-			traciVehicle->setFixedLane(vehicleData.actualLane - 1);
-			vehicleData.actualLane -= 1;
+			traciVehicle->setCruiseControlDesiredSpeed(30);
 		}
-		positionHelper->setPlatoonLane(vehicleData.actualLane);
 	}
 }
 
 void HighwayScenario::joinerDetectsInFrontVehicles(){
 	double distance, relativeSpeed;
 	traciVehicle->getRadarMeasurements(distance, relativeSpeed);
-	if(distance != -1 && distance < 10 && relativeSpeed < 0){
-		if(vehicleData.actualLane < 3){
-			traciVehicle->setFixedLane(vehicleData.actualLane + 1);
-			vehicleData.actualLane += 1;
+	//std::cout<<"vehicle "<<positionHelper->getId()<<" detects vehicles"<<endl;
+	if(distance != -1 && distance < 30 && relativeSpeed < 0){
+		//std::cout<<"vehicle "<<positionHelper->getId()<<" has found a disturbing vehicle"<<endl;
+		if(vehicleData.actualLane == traciVehicle->getLaneIndex()){
+			int nextLane = vehicleData.actualLane < 3? vehicleData.actualLane + 1 : vehicleData.actualLane - 1;
+			vehicleData.actualLane = nextLane;
+			traciVehicle->setFixedLane(nextLane);
 		}else{
-			traciVehicle->setFixedLane(vehicleData.actualLane - 1);
-			vehicleData.actualLane -= 1;
+			traciVehicle->setCruiseControlDesiredSpeed(30);
 		}
 	}
 }
@@ -210,6 +232,28 @@ void HighwayScenario::joinerDetectsInFrontVehicles(){
 void HighwayScenario::changeState(VEHICLE_STATES state){
 	vehicleState = state;
 	timer = 0;
+}
+
+void HighwayScenario::resetJoiner(){
+	positionHelper->setPlatoonId(-1);
+	positionHelper->setLeaderId(-1);
+	positionHelper->setPlatoonLane(-1);
+	if (role == JOINER){
+		changeState(JS_WILL_TO_BE_FOLLOWER);
+	}else{
+		changeState(LJS_WILL_TO_BE_LEADER_OR_FOLLOWER);
+	}
+}
+
+void HighwayScenario::removeVehicleFromJoiners(int id){
+	bool find = false;
+	for(unsigned int i = 0; i < vehicleData.joiners.size() && find == false; i++){
+		if(vehicleData.joiners[i].id == id){
+			find = true;
+			vehicleData.joiners.erase(vehicleData.joiners.begin() + i);
+			std::cout<<"leader "<<positionHelper->getId()<<" removes from the queue "<<id<<endl;
+		}
+	}
 }
 
 void HighwayScenario::handleVehicleMsg(cMessage *msg) {
@@ -244,29 +288,37 @@ void HighwayScenario::handleVehicleMsg(cMessage *msg) {
 				changeState(LJS_WILL_TO_BE_LEADER_OR_FOLLOWER);
 			}
 			if(!vehicleData.joiners.empty()){
-				vehicleData.joiners.pop();
+				//vehicleData.joiners.pop();
+				vehicleData.joiners.clear();
 			}
-			vehicleData.timeOutJoiners.clear();
+			//vehicleData.timeOutJoiners.clear();
 			break;
 		}
 		case LS_LEADING: {
-			std::cout<<"vehicle "<<positionHelper->getId()<<" leading"<<endl;
+			//std::cout<<"vehicle "<<positionHelper->getId()<<" leading"<<endl;
 
 			if(timer == (positionHelper->getId() + 5) || (timer % (100+positionHelper->getId()) == 0)){
-				leaderDetectsInFrontVehicles();
 				//notify to other cars the will to be the leader
 				sendLeaderProposal();
 			}
+			if(timer % 10 == 0)
+				leaderDetectsInFrontVehicles();
 			timer++;
 
 			if (maneuver && maneuver->getPlatoonId() == positionHelper->getPlatoonId()) {
 				if (maneuver->getMessageType() == JM_REQUEST_JOIN) {
-					insertNewJoiner(maneuver->getVehicleId());
+					std::cout<<"leader gets a join request from "<<maneuver->getVehicleId()<<endl;
+					//insertNewJoiner(maneuver->getVehicleId());
+					insertNewJoiner (maneuver->getVehicleId(), maneuver->getPosX());
 				}else if(maneuver->getMessageType() == JM_ABORT_MANEUER){
-					vehicleData.timeOutJoiners.push_back(maneuver->getVehicleId());
+					removeVehicleFromJoiners(maneuver->getVehicleId());
+				}else{
+					sendNegativeAck(vehicleData.joinerId, LM_ABORT_MANEUVER);
 				}
 			}
 
+			std::cout<<"joiners size "<<vehicleData.joiners.size()<<endl;
+			/*
 			if (!vehicleData.joiners.empty()){
 				controlNextJoiner();
 				if(!vehicleData.joiners.empty()){
@@ -278,7 +330,8 @@ void HighwayScenario::handleVehicleMsg(cMessage *msg) {
 					toSend->setPlatoonSpeed(vehicleData.speed);
 					//who is joining?
 					vehicleData.joinerId = vehicleData.joiners.front();
-					vehicleData.joiners.pop();
+					//vehicleData.joiners.pop();
+					vehicleData.joiners.erase(vehicleData.joiners.begin());
 					std::cout<<"leader "<<positionHelper->getId()<<" sends a move in position to "<< vehicleData.joinerId<<endl;
 					//send a positive ack to the joiner
 					sendUnicast(toSend, vehicleData.joinerId);
@@ -286,11 +339,39 @@ void HighwayScenario::handleVehicleMsg(cMessage *msg) {
 					changeState(LS_WAIT_JOINER_IN_POSITION);
 				}
 			}
+			*/
+			if (!vehicleData.joiners.empty()){
+
+				toSend = generateMessage();
+				toSend->setMessageType(LM_MOVE_IN_POSITION);
+				//this will be the front vehicle for the car which will join
+				int frontVehicle = newPositionHelper->getLastVehicle();
+				toSend->setFrontVehicleId(frontVehicle);
+				toSend->setPlatoonSpeed(vehicleData.speed);
+				int i = -1;
+				double distance = 10000;
+				for (unsigned int j = 0; j < vehicleData.joiners.size(); j++){
+					if(vehicleData.joiners[j].distance < distance){
+						distance = vehicleData.joiners[j].distance;
+						i = j;
+					}
+				}
+				//who is joining?
+				vehicleData.joinerId = vehicleData.joiners[i].id;
+				vehicleData.joiners.erase(vehicleData.joiners.begin() + i);
+				std::cout<<"leader "<<positionHelper->getId()<<" sends a move in position to "<< vehicleData.joinerId<<endl;
+				//send a positive ack to the joiner
+				sendUnicast(toSend, vehicleData.joinerId);
+
+				changeState(LS_WAIT_JOINER_IN_POSITION);
+
+			}
 			break;
 		}
 		case LS_WAIT_JOINER_IN_POSITION: {
 
-			std::cout<<"vehicle "<<positionHelper->getId()<<" wait joiner in position "<<vehicleData.joinerId<<endl;
+			std::cout<<"joiners size "<<vehicleData.joiners.size()<<endl;
+			//std::cout<<"vehicle "<<positionHelper->getId()<<" wait joiner in position "<<vehicleData.joinerId<<endl;
 			if (maneuver && maneuver->getPlatoonId() == positionHelper->getPlatoonId()) {
 				//the joiner is now in position and is ready to join+
 				if (maneuver->getMessageType() == JM_IN_POSITION) {
@@ -301,27 +382,30 @@ void HighwayScenario::handleVehicleMsg(cMessage *msg) {
 
 					changeState(LS_WAIT_JOINER_TO_JOIN);
 				}else if (maneuver->getMessageType() == JM_REQUEST_JOIN) {
-					insertNewJoiner(maneuver->getVehicleId());
+					std::cout<<"leader gets a join request from "<<maneuver->getVehicleId()<<endl;
+					//insertNewJoiner(maneuver->getVehicleId());
+					insertNewJoiner (maneuver->getVehicleId(), maneuver->getPosX());
 				}else if (maneuver->getMessageType() == JM_ABORT_MANEUER){
-					std::cout<<"leader "<<positionHelper->getId()<<" gets abort maneuver in wait joiner position from "<<maneuver->getVehicleId()<<endl;
+					//std::cout<<"leader "<<positionHelper->getId()<<" gets abort maneuver in wait joiner position from "<<maneuver->getVehicleId()<<endl;
 					if(maneuver->getVehicleId() == vehicleData.joinerId){
 						changeState(LS_LEADING);
 					}else{
-						vehicleData.timeOutJoiners.push_back(maneuver->getVehicleId());
+						removeVehicleFromJoiners(maneuver->getVehicleId());
 					}
+				}else{
+					sendNegativeAck(vehicleData.joinerId, LM_ABORT_MANEUVER);
 				}
 			}
-			if(timer == (positionHelper->getId() + 5) || (timer % (100+positionHelper->getId()) == 0)){
+			if(timer % 100 == 0){
 				//notify to other cars the will to be the leader
 				sendLeaderProposal();
 			}
-			if(timer % (5 + positionHelper->getId())){
+			if(timer % 10){
 				leaderDetectsInFrontVehicles();
 			}
 
 			timer++;
 			if(timer == MAX_TIME){
-				vehicleData.joiners.pop();
 				sendNegativeAck(vehicleData.joinerId, LM_ABORT_MANEUVER);
 
 				changeState(LS_LEADING);
@@ -329,7 +413,8 @@ void HighwayScenario::handleVehicleMsg(cMessage *msg) {
 			break;
 		}
 		case LS_WAIT_JOINER_TO_JOIN: {
-			std::cout<<"vehicle "<<positionHelper->getId()<<" wait joiner to join"<<endl;
+			std::cout<<"joiners size "<<vehicleData.joiners.size()<<endl;
+			//std::cout<<"vehicle "<<positionHelper->getId()<<" wait joiner to join"<<endl;
 			if (maneuver && maneuver->getPlatoonId() == positionHelper->getPlatoonId()) {
 				//the joiner has joined the platoon
 				if (maneuver->getMessageType() == JM_IN_PLATOON) {
@@ -339,51 +424,54 @@ void HighwayScenario::handleVehicleMsg(cMessage *msg) {
 					changeState(LS_LEADING);
 				}
 				else if (maneuver->getMessageType() == JM_REQUEST_JOIN) {
-					insertNewJoiner(maneuver->getVehicleId());
+					std::cout<<"leader gets a join request from "<<maneuver->getVehicleId()<<endl;
+					//insertNewJoiner(maneuver->getVehicleId());
+					insertNewJoiner (maneuver->getVehicleId(), maneuver->getPosX());
 				}else if (maneuver->getMessageType() == JM_ABORT_MANEUER){
 					std::cout<<"leader "<<positionHelper->getId()<<" gets abort maneuver in wait joiner to join from "<<maneuver->getFrontVehicleId()<<endl;
 					if(maneuver->getVehicleId() == vehicleData.joinerId){
 						changeState(LS_LEADING);
 					}else{
-						vehicleData.timeOutJoiners.push_back(maneuver->getVehicleId());
+						removeVehicleFromJoiners(maneuver->getVehicleId());
 					}
+				}else{
+					sendNegativeAck(vehicleData.joinerId, LM_ABORT_MANEUVER);
 				}
 			}
-			if(timer % (5 + positionHelper->getId())){
+			if(timer % 5){
 				leaderDetectsInFrontVehicles();
 			}
 
 			break;
 		}
 		case JS_WILL_TO_BE_FOLLOWER: {
-			std::cout<<"vehicle "<<positionHelper->getId()<<" will to be follower"<<endl;
+			//std::cout<<"vehicle "<<positionHelper->getId()<<" will to be follower"<<endl;
 			//analyze the leader's proposal, then ask for joining
 			if (maneuver && maneuver->getMessageType() == LM_PROPOSE_AS_LEADER) {
 				Coord veinsPosition = mobility->getPositionAt(simTime());
 				Veins::TraCICoord coords = mobility->getManager()->omnet2traci(veinsPosition);
 				Coord position(coords.x, coords.y, 0);
 				int myPosX = position.x;
-				if (maneuver->getPlatoonSpeed() >= vehicleData.minSpeed && maneuver->getPlatoonSpeed()<= vehicleData.maxSpeed && myPosX < maneuver->getPosX()){
-					std::cout<<"propose received from "<<maneuver->getVehicleId()<<" platoon id "<<maneuver->getPlatoonId()<<endl;
+				if (maneuver->getPlatoonSpeed() >= vehicleData.minSpeed && maneuver->getPlatoonSpeed()<= vehicleData.maxSpeed && myPosX < maneuver->getPosX() && (maneuver->getPosX() - myPosX < 500)){
 					positionHelper->setPlatoonId(maneuver->getPlatoonId());
 					positionHelper->setPlatoonLane(maneuver->getPlatoonLane());
-					traciVehicle->setCruiseControlDesiredSpeed(maneuver->getPlatoonSpeed());
 					toSend = generateMessage();
 					toSend->setMessageType(JM_REQUEST_JOIN);
+					toSend->setPosX(myPosX);
 					sendUnicast(toSend, positionHelper->getPlatoonId());
-
+					std::cout<<"vehicle "<<positionHelper->getId()<<" sends a request to "<<positionHelper->getPlatoonId()<<endl;
 					changeState(JS_WAIT_REPLY);
 				}
 			}
-			if(timer % (5 + positionHelper->getId())){
-				leaderDetectsInFrontVehicles();
+			if(timer % 5){
+				joinerDetectsInFrontVehicles();
 			}
 
 			break;
 		}
 
 		case JS_WAIT_REPLY: {
-			std::cout<<"vehicle "<<positionHelper->getId()<<" wait reply from "<<positionHelper->getPlatoonId()<<endl;
+
 			if (maneuver && maneuver->getPlatoonId() == positionHelper->getPlatoonId() && maneuver->getMessageType()!=LM_PROPOSE_AS_LEADER) {
 				//if the leader told us to move in position, we can start approaching the platoon
 				if (maneuver->getMessageType() == LM_MOVE_IN_POSITION) {
@@ -393,8 +481,6 @@ void HighwayScenario::handleVehicleMsg(cMessage *msg) {
 					vehicleData.joinLane = maneuver->getPlatoonLane();
 					//check for correct lane. if not in correct lane, change it
 					if (vehicleData.actualLane != vehicleData.joinLane) {
-						std::cout<<"vehicle "<<positionHelper->getId()<<" lane change, my actual lane is"<<vehicleData.actualLane<<"i need to go to lane"<<vehicleData.joinLane<<endl;
-
 						traciVehicle->setFixedLane(vehicleData.joinLane);
 						vehicleData.actualLane = vehicleData.joinLane;
 					}
@@ -408,38 +494,25 @@ void HighwayScenario::handleVehicleMsg(cMessage *msg) {
 
 					changeState(JS_MOVE_IN_POSITION);
 				}else if (maneuver->getMessageType() == LM_ABORT_MANEUVER){
-					positionHelper->setPlatoonId(-1);
-					positionHelper->setLeaderId(-1);
-					positionHelper->setPlatoonLane(-1);
-					if (role == JOINER){
-						changeState(JS_WILL_TO_BE_FOLLOWER);
-					}else{
-						changeState(LJS_WILL_TO_BE_LEADER_OR_FOLLOWER);
-					}
+					resetJoiner();
 				}
 			}
-			else if (!maneuver || (maneuver && maneuver->getMessageType() != LM_MOVE_IN_POSITION)){
+			if (timer % 5 == 0 && vehicleState == JS_WAIT_REPLY){
 				joinerDetectsInFrontVehicles();
+				std::cout<<"vehicle "<<positionHelper->getId()<<" wait reply from "<<positionHelper->getPlatoonId()<<endl;
 			}
 
 			timer ++;
 			if(timer== MAX_TIME && vehicleState == JS_WAIT_REPLY){
-
-				sendNegativeAck(positionHelper->getLeaderId(),JM_ABORT_MANEUER);
-				positionHelper->setPlatoonId(-1);
-				positionHelper->setLeaderId(-1);
-				positionHelper->setPlatoonLane(-1);
-				if (role == JOINER){
-					changeState(JS_WILL_TO_BE_FOLLOWER);
-				}else{
-					changeState(LJS_WILL_TO_BE_LEADER_OR_FOLLOWER);
-				}
+				std::cout<<"vehicle "<<positionHelper->getId()<<" reaches max time in wait reply"<<endl;
+				sendNegativeAck(positionHelper->getLeaderId(), JM_ABORT_MANEUER);
+				resetJoiner();
 			}
 			break;
 		}
 
 		case JS_MOVE_IN_POSITION: {
-			std::cout<<"vehicle "<<positionHelper->getId()<<" move in position to "<<positionHelper->getLeaderId()<<endl;
+			//std::cout<<"vehicle "<<positionHelper->getId()<<" move in position to "<<positionHelper->getLeaderId()<<endl;
 			//if we get data, just feed the fake CACC
 			if (beacon && beacon->getVehicleId() == positionHelper->getFrontId()) {
 				//get front vehicle position
@@ -452,18 +525,11 @@ void HighwayScenario::handleVehicleMsg(cMessage *msg) {
 
 				double radarDistance, relativeSpeed;
 				traciVehicle->getRadarMeasurements(radarDistance, relativeSpeed);
-				if(!(radarDistance + 1 > distance  && radarDistance - 1 < distance) && radarDistance != -1 && traciVehicle->getLaneIndex() == vehicleData.joinLane){
-					std::cout<<"distance from beacon "<<distance<<", distance from radar "<<radarDistance<<endl;
-					std::cout<<"joiner "<<positionHelper->getId()<<" sends abort maneuver in move in position to "<<positionHelper->getLeaderId()<<endl;
-					sendNegativeAck(positionHelper->getLeaderId(),JM_ABORT_MANEUER);
-					positionHelper->setPlatoonId(-1);
-					positionHelper->setLeaderId(-1);
-					positionHelper->setPlatoonLane(-1);
-					if (role == JOINER){
-						changeState(JS_WILL_TO_BE_FOLLOWER);
-					}else{
-						changeState(LJS_WILL_TO_BE_LEADER_OR_FOLLOWER);
-					}
+				if(!(radarDistance + 4 > distance  && radarDistance - 4 < distance) && radarDistance != -1 && traciVehicle->getLaneIndex() == vehicleData.joinLane){
+					//std::cout<<"distance from beacon "<<distance<<", distance from radar "<<radarDistance<<endl;
+					std::cout<<"joiner "<<positionHelper->getId()<<" sends abort maneuver in move in position because distance beacon and radar are different, to "<<positionHelper->getLeaderId()<<endl;
+					sendNegativeAck(positionHelper->getLeaderId(), JM_ABORT_MANEUER);
+					resetJoiner();
 				}
 				//if we are in position, tell the leader about that
 				if (distance < 16) {
@@ -473,36 +539,29 @@ void HighwayScenario::handleVehicleMsg(cMessage *msg) {
 
 					changeState(JS_WAIT_JOIN);
 				}
+			}else {
+				double distance, relativeSpeed;
+				traciVehicle->getRadarMeasurements(distance, relativeSpeed);
+				if(distance != -1 && distance < 5 && relativeSpeed < 0){
+					std::cout<<"vehicle"<<positionHelper->getId()<< " change line in move position because of the radar and sends abort"<<endl;
+					int nextLane = vehicleData.actualLane < 3? vehicleData.actualLane + 1 : vehicleData.actualLane - 1;
+					vehicleData.actualLane = nextLane;
+					traciVehicle->setFixedLane(nextLane);
+					sendNegativeAck(positionHelper->getLeaderId(),JM_ABORT_MANEUER);
+					resetJoiner();
+				}
 			}
-			if (maneuver && maneuver->getPlatoonId() == positionHelper->getPlatoonId() && maneuver->getMessageType()!=LM_PROPOSE_AS_LEADER){
+			if (maneuver && maneuver->getPlatoonId() == positionHelper->getPlatoonId()){
 				if(maneuver->getMessageType() == LM_ABORT_MANEUVER){
-					positionHelper->setPlatoonId(-1);
-					positionHelper->setLeaderId(-1);
-					positionHelper->setPlatoonLane(-1);
-					if (role == JOINER){
-						changeState(JS_WILL_TO_BE_FOLLOWER);
-					}else{
-						changeState(LJS_WILL_TO_BE_LEADER_OR_FOLLOWER);
-					}
+					resetJoiner();
 				}
 			}
-			timer++;
-			if(timer == MAX_TIME &&  vehicleState == JS_MOVE_IN_POSITION){
-				sendNegativeAck(positionHelper->getLeaderId(),JM_ABORT_MANEUER);
-				positionHelper->setPlatoonId(-1);
-				positionHelper->setLeaderId(-1);
-				positionHelper->setPlatoonLane(-1);
-				if (role == JOINER){
-					changeState(JS_WILL_TO_BE_FOLLOWER);
-				}else{
-					changeState(LJS_WILL_TO_BE_LEADER_OR_FOLLOWER);
-				}
-			}
+
 			break;
 		}
 
 		case JS_WAIT_JOIN: {
-			std::cout<<"vehicle "<<positionHelper->getId()<<" wait join to "<<positionHelper->getLeaderId()<<endl;
+			//std::cout<<"vehicle "<<positionHelper->getId()<<" wait join to "<<positionHelper->getLeaderId()<<endl;
 			if (maneuver && maneuver->getPlatoonId() == positionHelper->getPlatoonId() && maneuver->getMessageType()!=LM_PROPOSE_AS_LEADER ) {
 
 				//if we get confirmation from the leader, switch from faked CACC to real CACC
@@ -516,16 +575,15 @@ void HighwayScenario::handleVehicleMsg(cMessage *msg) {
 					sendUnicast(toSend, positionHelper->getLeaderId());
 					changeState(JS_FOLLOW);
 				}else if(maneuver->getMessageType() == LM_ABORT_MANEUVER){
-					positionHelper->setPlatoonId(-1);
-					positionHelper->setLeaderId(-1);
-					positionHelper->setPlatoonLane(-1);
-					if (role == JOINER){
-						changeState(JS_WILL_TO_BE_FOLLOWER);
-					}else{
-						changeState(LJS_WILL_TO_BE_LEADER_OR_FOLLOWER);
-					}
+					resetJoiner();
 				}
 			}
+			if(timer == MAX_TIME &&  vehicleState == JS_MOVE_IN_POSITION){
+				//std::cout<<"vehicle "<<positionHelper->getId()<<" reach max time in move in position and sends an abort"<<endl;
+				sendNegativeAck(positionHelper->getLeaderId(), JM_ABORT_MANEUER);
+				resetJoiner();
+			}
+			timer++;
 			break;
 		}
 
@@ -535,16 +593,27 @@ void HighwayScenario::handleVehicleMsg(cMessage *msg) {
 		}
 
 		case LJS_WILL_TO_BE_LEADER_OR_FOLLOWER:{
-			std::cout<<"vehicle "<<positionHelper->getId()<<" leader of follower"<<endl;
+			//std::cout<<"vehicle "<<positionHelper->getId()<<" leader of follower"<<endl;
 			if (maneuver && maneuver->getMessageType() == JM_REQUEST_JOIN) {
-				insertNewJoiner(maneuver->getVehicleId());
 
 				positionHelper->setLeaderId(positionHelper->getId());
 				positionHelper->setIsLeader(true);
 				positionHelper->setPlatoonLane(vehicleData.actualLane);
 				positionHelper->setPlatoonId(positionHelper->getId());
 
-				changeState(LS_LEADING);
+				toSend = generateMessage();
+				toSend->setMessageType(LM_MOVE_IN_POSITION);
+				//this will be the front vehicle for the car which will join
+				int frontVehicle = positionHelper->getId();
+				toSend->setFrontVehicleId(frontVehicle);
+				toSend->setPlatoonSpeed(vehicleData.speed);
+				//who is joining?
+				vehicleData.joinerId = maneuver->getVehicleId();
+				std::cout<<"leader "<<positionHelper->getId()<<" sends a move in position to "<< vehicleData.joinerId<<endl;
+				//send a positive ack to the joiner
+				sendUnicast(toSend, vehicleData.joinerId);
+
+				changeState(LS_WAIT_JOINER_IN_POSITION);
 			}else if (maneuver && maneuver->getMessageType() == LM_PROPOSE_AS_LEADER && vehicleData.joiners.empty()) {
 				Coord veinsPosition = mobility->getPositionAt(simTime());
 				Veins::TraCICoord coords = mobility->getManager()->omnet2traci(veinsPosition);
@@ -566,8 +635,8 @@ void HighwayScenario::handleVehicleMsg(cMessage *msg) {
 
 
 			timer++;
-			if (timer % (50+positionHelper->getId()) == 0){
-				joinerDetectsInFrontVehicles();
+			if (timer % 100 == 0){
+				leaderDetectsInFrontVehicles();
 				sendLeaderProposal();
 			}
 
@@ -607,8 +676,8 @@ void HighwayScenario::handleLowerControl(cMessage *msg) {
 				positionHelper->setPlatoonLane(-1);
 
 			}else{
-				if(vehicleState == LS_LEADING || vehicleState == LS_WAIT_JOINER_IN_POSITION || vehicleState == LS_WAIT_JOINER_TO_JOIN){
-					vehicleState == LS_LEADING;
+				if(positionHelper->isLeader()){
+					vehicleState = LS_LEADING;
 					sendNegativeAck(vehicleData.joinerId, LM_ABORT_MANEUVER);
 
 				}else{

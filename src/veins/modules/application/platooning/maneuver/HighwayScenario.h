@@ -16,9 +16,9 @@ class HighwayScenario : public BaseScenario
 		//define the roles
 		enum JOIN_ROLE {LEADER, JOINER, LEADER_OR_JOINER};
 		//data that each car needs to keep
-		struct VEHICLE_JOINER {
-			int 				id;
-			double				speed;
+		struct JOINER_DATA{
+			int					id;
+			double				distance;
 		};
 		struct VEHICLE_DATA {
 			double              speed;      //speed of the platoon
@@ -27,8 +27,8 @@ class HighwayScenario : public BaseScenario
 			int					actualLane;
 			int                 joinLane;   //the lane chosen for joining the platoon
 			int                 joinerId;   //the id of the vehicle joining the platoon
-			std::queue<int>		joiners;	//queue of vehicles that want to join
-			std::vector<int>	timeOutJoiners;
+			//std::vector<int>	joiners;
+			std::vector<JOINER_DATA> joiners;
 		};
 
 		//define the states for each role
@@ -56,16 +56,20 @@ class HighwayScenario : public BaseScenario
 			JM_IN_POSITION = 5,
 			JM_IN_PLATOON = 6,
 			LM_ABORT_MANEUVER = 7,
-			JM_ABORT_MANEUER = 8
+			JM_ABORT_MANEUER = 8,
+			//LM_REQUEST_ACK = 9,
+			//LM_REQUEST_NACK = 10
 		};
 
 		VEHICLE_STATES vehicleState;
 		//the role of this vehicle
 		JOIN_ROLE role;
-		//the position of this vehicle in the platoon
-		int position;
+
 		int timer;
-		const int MAX_TIME = 400;
+		//bool ackReceived = false;
+		const int MAX_TIME = 4000;
+		//const int MAX_TIME_WAITING_ACK = 10000;
+		const int MAX_TIME_LEADER = 10000;
 		//data known by the vehicle
 		struct VEHICLE_DATA vehicleData;
 		//message used to start the maneuver
@@ -103,15 +107,16 @@ class HighwayScenario : public BaseScenario
 		virtual void sendLeaderProposal();
 		virtual void sendNegativeAck(int destination, int type);
 		//finds who is the next joiner comparing the queue of requests received with the vector of timeout received
-		virtual void controlNextJoiner();
+		//virtual void controlNextJoiner();
 		//determines the role of a vehicle depending on the vehicle id
 		virtual int determineRole ();
 		//analyzes a joiner request. If the request can be accepted it will insert the joiner into the queue
-		virtual void insertNewJoiner(int joinerId);
+		virtual void insertNewJoiner(int joinerId, double hisPosX);
 		virtual void leaderDetectsInFrontVehicles();
 		virtual void joinerDetectsInFrontVehicles();
 		virtual void changeState(VEHICLE_STATES state);
-
+		virtual void resetJoiner();
+		virtual void removeVehicleFromJoiners(int id);
 		ManeuverMessage *generateMessage();
 
 		void handleVehicleMsg(cMessage *msg);
