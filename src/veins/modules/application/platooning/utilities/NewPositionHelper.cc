@@ -69,6 +69,9 @@ void NewPositionHelper::setFrontVehicle(int id, std::string sumoId){
 	myFrontVehicleSumoId = sumoId;
 }
 
+std::string NewPositionHelper::getSumoId(){
+	return mySumoId;
+}
 std::string NewPositionHelper::getLeaderSumoId(){
 	return myLeaderSumoId;
 }

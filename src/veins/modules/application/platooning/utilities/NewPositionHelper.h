@@ -55,6 +55,7 @@ class NewPositionHelper : public BasePositionHelper
 		 */
 		virtual int getFrontVehicle();
 
+		virtual std::string getSumoId();
 		virtual std::string getLeaderSumoId();
 		virtual std::string getFrontVehicleSumoId();
 
