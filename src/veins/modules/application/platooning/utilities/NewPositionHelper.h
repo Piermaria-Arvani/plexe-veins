@@ -23,6 +23,8 @@ class NewPositionHelper : public BasePositionHelper
 		virtual bool isLeader (int id);
 		bool isInSamePlatoon(int vehicleId);
 
+		virtual void setLeader(int id, std::string sumoId);
+		virtual void setFrontVehicle(int id, std::string sumoId);
 		/**
 		 * Inserts a follower in the last position of the platoon
 		 */
@@ -53,6 +55,10 @@ class NewPositionHelper : public BasePositionHelper
 		 */
 		virtual int getFrontVehicle();
 
+		virtual std::string getLeaderSumoId();
+		virtual std::string getFrontVehicleSumoId();
+
+
 		static int getIdFromExternalId(std::string externalId);
 
 	protected :
@@ -60,10 +66,16 @@ class NewPositionHelper : public BasePositionHelper
 		 * Vector of ids
 		 */
 		platoon p;
+		std::string mySumoId;
+		std::string myLeaderSumoId;
+		std::string myFrontVehicleSumoId;
 
 
 	public:
 		NewPositionHelper() : BasePositionHelper() {
+			mySumoId = NULL;
+			myLeaderSumoId = NULL;
+			myFrontVehicleSumoId = NULL;
 		}
 
 };

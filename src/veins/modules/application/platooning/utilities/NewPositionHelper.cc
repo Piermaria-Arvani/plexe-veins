@@ -8,6 +8,7 @@ void NewPositionHelper::initialize(int stage) {
 	if (stage == 0) {
 		nCars = par("nCars").longValue();
 		myId = getIdFromExternalId(getExternalId());
+		mySumoId = getExternalId();
 	}
 }
 
@@ -57,6 +58,25 @@ bool NewPositionHelper::isLeader(int id){
 	}
 	return id == p[0];
 }
+
+void NewPositionHelper::setLeader(int id, std::string sumoId){
+	leaderId = id;
+	myLeaderSumoId = sumoId;
+}
+
+void NewPositionHelper::setFrontVehicle(int id, std::string sumoId){
+	frontId = id;
+	myFrontVehicleSumoId = sumoId;
+}
+
+std::string NewPositionHelper::getLeaderSumoId(){
+	return myLeaderSumoId;
+}
+
+std::string NewPositionHelper::getFrontVehicleSumoId(){
+	return myFrontVehicleSumoId;
+}
+
 
 int NewPositionHelper::getIdFromExternalId(std::string externalId) {
 	int dotIndex = externalId.find_last_of('.');
