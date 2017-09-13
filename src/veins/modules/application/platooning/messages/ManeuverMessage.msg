@@ -15,9 +15,12 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 //
 
+
 packet ManeuverMessage {
     //id of the originator
     int vehicleId;
+    //sumo id of the originator
+    string sumoId;
     //platoon id
     int platoonId;
     //message type
