@@ -73,9 +73,9 @@ class NewPositionHelper : public BasePositionHelper
 
 	public:
 		NewPositionHelper() : BasePositionHelper() {
-			mySumoId = NULL;
-			myLeaderSumoId = NULL;
-			myFrontVehicleSumoId = NULL;
+			mySumoId = "";
+			myLeaderSumoId = "";
+			myFrontVehicleSumoId = "";
 		}
 
 };
