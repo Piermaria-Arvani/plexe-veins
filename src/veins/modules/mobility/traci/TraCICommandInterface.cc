@@ -141,6 +141,7 @@ std::list<std::string> TraCICommandInterface::getRoadIds() {
 	return genericGetStringList(CMD_GET_EDGE_VARIABLE, "", ID_LIST, RESPONSE_GET_EDGE_VARIABLE);
 }
 
+
 void TraCICommandInterface::Vehicle::changeRoute(std::string roadId, double travelTime) {
 	if (travelTime >= 0) {
 		uint8_t variableId = VAR_EDGE_TRAVELTIME;
@@ -834,6 +835,35 @@ bool TraCICommandInterface::Vehicle::isCrashed() {
 	ASSERT(buf.eof());
 
 	return crashed;
+}
+
+bool TraCICommandInterface::Vehicle::couldChangeLane(int direction){
+
+	uint8_t variableId = CMD_CHANGELANE;
+	uint8_t directionT = TYPE_INTEGER;
+	TraCIBuffer buf = traci->connection.query(CMD_GET_VEHICLE_VARIABLE, TraCIBuffer() << variableId << nodeId << directionT<< direction);
+
+	uint8_t cmdLength; buf >> cmdLength;
+	uint8_t commandId; buf >> commandId;
+	ASSERT(commandId == RESPONSE_GET_VEHICLE_VARIABLE);
+	uint8_t varId; buf >> varId;
+	ASSERT(varId == CMD_CHANGELANE);
+	std::string retVehicleId; buf >> retVehicleId;
+	ASSERT(retVehicleId == nodeId);
+	uint8_t typec; buf>> typec; ASSERT(typec == TYPE_COMPOUND);
+	int temp; buf >> temp; ASSERT(temp == 2);
+	uint8_t typei; buf>> typei; ASSERT(typei == TYPE_INTEGER);
+	int stateFirst; buf >> stateFirst;
+	uint8_t typec2; buf>> typec2; ASSERT(typec2 == TYPE_INTEGER);
+	int stateSecond; buf >> stateSecond;
+
+	ASSERT(buf.eof());
+
+	int LCA_UNKNOWN = 1073741824;
+	int LCA_BLOCKED = 24064;
+
+	return stateFirst != LCA_UNKNOWN && ((stateFirst & LCA_BLOCKED) == 0);
+
 }
 
 bool TraCICommandInterface::Vehicle::isCruiseControllerInstalled() {

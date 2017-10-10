@@ -201,6 +201,8 @@ class TraCICommandInterface
 				 */
 				std::string getVType();
 
+				bool couldChangeLane(int direction);
+
 			protected:
 				TraCICommandInterface* traci;
 				TraCIConnection* connection;

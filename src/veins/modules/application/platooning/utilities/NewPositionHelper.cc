@@ -19,14 +19,19 @@ void NewPositionHelper::setPlatoon(platoon p){
 	}
 }
 
-void NewPositionHelper::insertFollower(int id){
+void NewPositionHelper::insertFollower(int id, std::string sumoId){
 	p.push_back(id);
+
+	if(sumoIds.size() == 0)
+		sumoIds.push_back(mySumoId);
+	sumoIds.push_back(sumoId);
 }
 
 void NewPositionHelper::removeFollower(int id){
 	for(unsigned i = 0; i < p.size(); i++){
 		if (p[i] == id){
 			p.erase (p.begin() + i);
+			sumoIds.erase(sumoIds.begin() + (i));
 		}
 	}
 }
@@ -37,6 +42,12 @@ platoon& NewPositionHelper::getPlatoon(){
 
 int NewPositionHelper::getLastVehicle (){
 	return p.back();
+}
+std::string NewPositionHelper::getLastVehicleSumoId(){
+	if(sumoIds.size() != 0)
+		return sumoIds.back();
+	else
+		return mySumoId;
 }
 
 int NewPositionHelper::getPlatoonSize (){
@@ -80,6 +91,16 @@ std::string NewPositionHelper::getFrontVehicleSumoId(){
 	return myFrontVehicleSumoId;
 }
 
+std::vector<std::string>& NewPositionHelper::getSumoIds(){
+	return sumoIds;
+}
+
+void NewPositionHelper::resetVectors(){
+	p.clear();
+	p.push_back(myId);
+	sumoIds.clear();
+	sumoIds.push_back(mySumoId);
+}
 
 int NewPositionHelper::getIdFromExternalId(std::string externalId) {
 	int dotIndex = externalId.find_last_of('.');

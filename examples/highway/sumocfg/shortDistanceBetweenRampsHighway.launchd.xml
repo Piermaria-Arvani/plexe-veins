@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<!-- debug config -->
+<launch>
+
+	<basedir path="examples/highway/sumocfg"/>
+	<copy file="shortDistanceBetweenRampsHighway.net.xml"/>
+	<copy file="shortDistanceBetweenRampsHighway.rou.xml"/>
+	<copy file="shortDistanceBetweenRampsHighway.sumo.cfg" type="config"/>
+</launch>

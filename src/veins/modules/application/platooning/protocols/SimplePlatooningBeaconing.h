@@ -19,6 +19,8 @@
 #define SIMPLEPLATOONINGBEACONING_H_
 
 #include "BaseProtocol.h"
+#include "veins/modules/application/platooning/utilities/NewPositionHelper.h"
+#include "veins/modules/application/platooning/CC_Const.h"
 
 class SimplePlatooningBeaconing : public BaseProtocol
 {
@@ -26,6 +28,9 @@ class SimplePlatooningBeaconing : public BaseProtocol
 
 		virtual void handleSelfMsg(cMessage *msg);
 		virtual void messageReceived(PlatooningBeacon *pkt, UnicastMessage *unicast);
+
+		BasePositionHelper *positionHelper;
+		NewPositionHelper *newPositionHelper;
 
 	public:
 		SimplePlatooningBeaconing();

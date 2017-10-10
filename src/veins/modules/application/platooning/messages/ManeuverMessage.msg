@@ -15,6 +15,10 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 //
 
+cplusplus {{ typedef std::vector<int> platoon;
+             typedef std::vector<char*> SumoIds; }} // C++ typedef
+class noncobject platoon; // announcement for the message compiler
+class noncobject SumoIds;
 
 packet ManeuverMessage {
     //id of the originator
@@ -35,8 +39,17 @@ packet ManeuverMessage {
     double posX;
     //id of vehicle in front of the joiner (G)
     int frontVehicleId;
+    //sumo id of the front vehicle
+    string frontVehicleSumoId;
     //id of the follower vehicle (F)
     int followerVehicleId;
     //platoon formation
     int platoonFormation[];
+    //id of the leader
+    int leaderId;
+    //sumo id of the leader
+    string leaderSumoId;
+    //vector of the ids of the platoon's vehicles
+    platoon ids ;
+    SumoIds sumoIds;
 }

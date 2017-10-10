@@ -575,6 +575,7 @@
 // best lanes (get: vehicle)
 #define VAR_BEST_LANES 0xb2
 
+
 // how speed is set (set: vehicle)
 #define VAR_SPEEDSETMODE 0xb3
 
@@ -818,5 +819,7 @@
 
 // set ACC headway time
 #define VAR_SET_ACC_HEADWAY_TIME 0xff
+
+
 
 #endif

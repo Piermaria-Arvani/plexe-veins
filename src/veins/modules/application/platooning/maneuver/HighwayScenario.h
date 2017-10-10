@@ -27,7 +27,6 @@ class HighwayScenario : public BaseScenario
 			int					actualLane;
 			int                 joinLane;   //the lane chosen for joining the platoon
 			int                 joinerId;   //the id of the vehicle joining the platoon
-			//std::vector<int>	joiners;
 			std::vector<JOINER_DATA> joiners;
 		};
 
@@ -43,8 +42,10 @@ class HighwayScenario : public BaseScenario
 			JS_MOVE_IN_POSITION = 7,
 			JS_WAIT_JOIN = 8,
 			JS_FOLLOW = 9,
-			LJS_WILL_TO_BE_LEADER_OR_FOLLOWER = 10
-
+			LJS_WILL_TO_BE_LEADER_OR_FOLLOWER = 10,
+			LJS_WAIT_REPLY = 11,
+			LJS_MOVE_IN_POSITION = 12,
+			LJS_WAIT_JOIN = 13
 		} VEHICLE_STATES;
 		//define the messages that can be sent by each role
 		enum VEHICLE_MSGS {
@@ -57,8 +58,8 @@ class HighwayScenario : public BaseScenario
 			JM_IN_PLATOON = 6,
 			LM_ABORT_MANEUVER = 7,
 			JM_ABORT_MANEUER = 8,
-			//LM_REQUEST_ACK = 9,
-			//LM_REQUEST_NACK = 10
+			LM_CHANGE_LEADER = 9,
+			LM_IN_PLATOON = 10
 		};
 
 		VEHICLE_STATES vehicleState;
@@ -66,14 +67,17 @@ class HighwayScenario : public BaseScenario
 		JOIN_ROLE role;
 
 		int timer;
-		//bool ackReceived = false;
-		const int MAX_TIME = 4000;
-		//const int MAX_TIME_WAITING_ACK = 10000;
-		const int MAX_TIME_LEADER = 10000;
+		int timeoutTimer;
+		const int MAX_TIME_WAITING_REPLY = 60;
+		const int MAX_TIME_LEADER_WAITING_IN_POSITION = 60;
+		const int leaderProposalInterval = 5;
+		const int detectingVehiclesInterval = 1;
 		//data known by the vehicle
 		struct VEHICLE_DATA vehicleData;
 		//message used to start the maneuver
 		cMessage *startManeuver;
+		cMessage *movingInPosition;
+		cMessage *detectInFrontVehicle;
 		//pointer to protocol
 		BaseProtocol *protocol;
 
@@ -116,12 +120,15 @@ class HighwayScenario : public BaseScenario
 		virtual void joinerDetectsInFrontVehicles();
 		virtual void changeState(VEHICLE_STATES state);
 		virtual void resetJoiner();
+		virtual void returnToLeadingState();
 		virtual void removeVehicleFromJoiners(int id);
+
 		ManeuverMessage *generateMessage();
 
 		void handleVehicleMsg(cMessage *msg);
 
 		void prepareManeuverCars();
+		virtual void leaderSendMoveOrLeading();
 
 	};
 

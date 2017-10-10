@@ -28,7 +28,7 @@ class NewPositionHelper : public BasePositionHelper
 		/**
 		 * Inserts a follower in the last position of the platoon
 		 */
-		virtual void insertFollower (int id);
+		virtual void insertFollower (int id, std::string sumoId);
 
 		/**
 		 * Removes a follower from the platoon
@@ -58,6 +58,9 @@ class NewPositionHelper : public BasePositionHelper
 		virtual std::string getSumoId();
 		virtual std::string getLeaderSumoId();
 		virtual std::string getFrontVehicleSumoId();
+		virtual std::string getLastVehicleSumoId();
+		virtual std::vector<std::string>& getSumoIds();
+		virtual void resetVectors();
 
 
 		static int getIdFromExternalId(std::string externalId);
@@ -67,6 +70,7 @@ class NewPositionHelper : public BasePositionHelper
 		 * Vector of ids
 		 */
 		platoon p;
+		std::vector<std::string> sumoIds;
 		std::string mySumoId;
 		std::string myLeaderSumoId;
 		std::string myFrontVehicleSumoId;

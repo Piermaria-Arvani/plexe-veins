@@ -60,49 +60,61 @@ void PlatoonsTrafficManager::handleSelfMsg(cMessage *msg) {
 
 void PlatoonsTrafficManager::insertPlatoons() {
 
+	//vector of all the routes ids
+	std::vector<std::string> routeIds;
+	std::list<std::string> routes = commandInterface->getRouteIds();
+	EV << "Having currently " << routes.size() << " routes in the scenario" << std::endl;
+	for (std::list<std::string>::const_iterator i = routes.begin(); i != routes.end(); ++i) {
+		std::string routeId = *i;
+		EV << routeId << std::endl;
+		routeIds.push_back(routeId);
+		std::cout<<"platoonsTrafficManager: "<< routeId<<endl;
+		std::list<std::string> routeEdges = commandInterface->route(routeId).getRoadIds();
+		std::string firstEdge = *(routeEdges.begin());
+		EV << "First Edge of route " << routeId << " is " << firstEdge << std::endl;
+		routeStartLaneIds[routeId] = laneIdsOnEdge[firstEdge];
+	}
+
+
 	//compute intervehicle distance
 	double distance = platoonInsertSpeed / 3.6 * platoonInsertHeadway + platoonInsertDistance;
-	//total number of platoons per lane
-	int nPlatoons = nCars / platoonSize / nLanes;
-	//length of 1 platoon
-	double platoonLength = platoonSize * 4 + (platoonSize - 1) * distance;
-	//inter-platoon distance
 	double platoonDistance = platoonInsertSpeed / 3.6 * platoonLeaderHeadway;
 	//total length for one lane
-	double totalLength = nPlatoons * platoonLength + (nPlatoons - 1) * platoonDistance;
-
+	double totalLength = nCars + (nCars-1) * platoonDistance;
+	//number of highway lanes
+	//TODO: take it directly
+	int maxL = 3;
+	int routeNumber = routeIds.size();
 	//for each lane, we create an offset to have misaligned platoons
-	double *laneOffset = new double[nLanes];
-	for (int l = 0; l < nLanes; l++)
-		laneOffset[l] = uniform(0, 20);
+	double *laneOffset = new double[nCars];
+	for (int l = 0; l < nCars; l++)
+		laneOffset[l] = uniform(0, 10);
+
 
 	double currentPos = totalLength;
-	int currentCar = 0;
-	for (int i = 0; i < nCars/nLanes; i++) {
-		for (int l = 0; l < nLanes; l++) {
-			automated.position = currentPos + laneOffset[l];
-			automated.lane = l;
-			addVehicleToQueue(0, automated);
-			if ( currentCar == 0){
-				//inserts a new leader
-				platoons.push_back(platoon());
-				platoons.back().push_back(i);
-			}else{
-				//inserts a vehicle into the leader vector
-				insertFollower(i,(i%nLanes));
-			}
+	int l = 0;
+	int routeCounter = 0;
+
+	for(int i = 0; i < nCars; i++){
+		std::string route = routeIds[routeCounter];
+		std::string str1 = route.substr (0,5);
+		if (str1.compare("begin") != 0){
+			//automated.speed = 20;
+			std::cout<<"route:"<<route<<"this one would be go slower"<<endl;
 		}
-		currentCar++;
-		if (currentCar == platoonSize) {
-			currentCar = 0;
-			//add inter platoon gap
-			currentPos -= (platoonDistance + 4);
-		}
-		else {
-			//add intra platoon gap
-			currentPos -= (4 + distance);
-		}
+		automated.position = currentPos - laneOffset[i];
+		std::cout<<"position: "<<automated.position<<",currentPos:"<<currentPos<<", laneoffset: "<<laneOffset[i]<<",";
+		automated.lane = l;
+		addVehicleToQueue(0 /*routeCounter*/, automated);
+		platoons.push_back(platoon());
+		platoons.back().push_back(i);
+		currentPos -= (4 + distance);
+
+		l < maxL? l++ : l = 0;
+		routeCounter < routeNumber-1? routeCounter++ : routeCounter = 0;
+		std::cout<<"l:"<<l<<endl;
 	}
+
 
 	printMatrix();
 	delete [] laneOffset;
