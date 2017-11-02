@@ -139,7 +139,6 @@ void TraCIBaseTrafficManager::loadSumoScenario() {
 			std::string routeId = *i;
 			EV << routeId << std::endl;
 			routeIds.push_back(routeId);
-			std::cout<<"TraciBase: "<<routeId<<endl;
 			std::list<std::string> routeEdges = commandInterface->route(routeId).getRoadIds();
 			std::string firstEdge = *(routeEdges.begin());
 			EV << "First Edge of route " << routeId << " is " << firstEdge << std::endl;
@@ -162,7 +161,6 @@ void TraCIBaseTrafficManager::insertVehicles() {
 	//insert the vehicles in the queue
 	for (InsertQueue::iterator i = vehicleInsertQueue.begin(); i != vehicleInsertQueue.end(); ++i) {
 		std::string route = routeIds[i->first];
-		//std::cout<<" route"<< route<<endl;
 		EV << "process " << route << std::endl;
 		std::deque<struct Vehicle>::iterator vi = i->second.begin();
 		while (vi != i->second.end() && i->second.size() != 0) {

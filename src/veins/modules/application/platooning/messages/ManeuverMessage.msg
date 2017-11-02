@@ -51,5 +51,8 @@ packet ManeuverMessage {
     string leaderSumoId;
     //vector of the ids of the platoon's vehicles
     platoon ids ;
+    //vector of the SUMO ids of the platoon's vehicles
     SumoIds sumoIds;
+    //destination id
+    string destionationId;
 }

@@ -259,14 +259,14 @@ void BaseWaveApplLayer::handleSelfMsg(cMessage* msg) {
 }
 
 void BaseWaveApplLayer::finish() {
-    recordScalar("generatedWSMs",generatedWSMs);
+   /* recordScalar("generatedWSMs",generatedWSMs);
     recordScalar("receivedWSMs",receivedWSMs);
 
     recordScalar("generatedBSMs",generatedBSMs);
     recordScalar("receivedBSMs",receivedBSMs);
 
     recordScalar("generatedWSAs",generatedWSAs);
-    recordScalar("receivedWSAs",receivedWSAs);
+    recordScalar("receivedWSAs",receivedWSAs);*/
 }
 
 BaseWaveApplLayer::~BaseWaveApplLayer() {

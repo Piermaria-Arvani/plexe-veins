@@ -1,17 +1,15 @@
 <routes>
-	
 	<vType id="vtypeauto" accel="2.5" decel="6.0" sigma="0.5" length="4" minGap="0" maxSpeed="41" color="137,164,204" probability="1" >
-		<carFollowing-CC tau="0.5" omegaN="1" xi="2" c1="0.5" decel="6" lambda="0.5" lanesCount="4" ccAccel="1.5"/>
+		<carFollowing-CC tau="0.5" omegaN="1" xi="2" c1="0.5" decel="6" lambda="0.5" lanesCount="3" ccAccel="1.5"/>
 	</vType>
-	
 
 	<route id="begin_end_of_highway" edges="begin edge_0_1 edge_0_1-AddedOffRampEdge edge_0_2 edge_0_3-AddedOnRampEdge edge_0_3 edge_0_4 edge_1_0 edge_1_1 edge_1_1-AddedOffRampEdge edge_1_2 edge_1_3-AddedOnRampEdge edge_1_3 edge_1_4 edge_2_0 edge_2_1 edge_2_1-AddedOffRampEdge edge_2_2 edge_2_3-AddedOnRampEdge edge_2_3 edge_2_4 end_of_highway"/>
 	<route id="begin_exit0" edges="begin edge_0_1 edge_0_1-AddedOffRampEdge edge_0_5 edge_0_7 exit0"/>
-	<route id="entrance0_end_of_highway" edges="entrance0 edge_0_8 edge_0_6 edge_0_3-AddedOnRampEdge edge_0_3 edge_0_4 edge_1_0 edge_1_1 edge_1_1-AddedOffRampEdge edge_1_2 edge_1_3-AddedOnRampEdge edge_1_3 edge_1_4 edge_2_0 edge_2_1 edge_2_1-AddedOffRampEdge edge_2_2 edge_2_3-AddedOnRampEdge edge_2_3 edge_2_4 end_of_highway"/>
+	<route id="entrance0_end_of_highway" edges="edge_0_8 edge_0_6 edge_0_3-AddedOnRampEdge edge_0_3 edge_0_4 edge_1_0 edge_1_1 edge_1_1-AddedOffRampEdge edge_1_2 edge_1_3-AddedOnRampEdge edge_1_3 edge_1_4 edge_2_0 edge_2_1 edge_2_1-AddedOffRampEdge edge_2_2 edge_2_3-AddedOnRampEdge edge_2_3 edge_2_4 end_of_highway"/>
 	<route id="begin_exit1" edges="begin edge_0_1 edge_0_1-AddedOffRampEdge edge_0_2 edge_0_3-AddedOnRampEdge edge_0_3 edge_0_4 edge_1_0 edge_1_1 edge_1_1-AddedOffRampEdge edge_1_5 edge_1_7 exit1"/>
-	<route id="entrance0_exit1" edges="entrance0 edge_0_8 edge_0_6 edge_0_3-AddedOnRampEdge edge_0_3 edge_0_4 edge_1_0 edge_1_1 edge_1_1-AddedOffRampEdge edge_1_5 edge_1_7 exit1"/>
+	<route id="entrance0_exit1" edges="edge_0_8 edge_0_6 edge_0_3-AddedOnRampEdge edge_0_3 edge_0_4 edge_1_0 edge_1_1 edge_1_1-AddedOffRampEdge edge_1_5 edge_1_7 exit1"/>
 	<route id="entrance1_end_of_highway" edges="entrance1 edge_1_8 edge_1_6 edge_1_3-AddedOnRampEdge edge_1_3 edge_1_4 edge_2_0 edge_2_1 edge_2_1-AddedOffRampEdge edge_2_2 edge_2_3-AddedOnRampEdge edge_2_3 edge_2_4 end_of_highway"/>
 	<route id="begin_exit2" edges="begin edge_0_1 edge_0_1-AddedOffRampEdge edge_0_2 edge_0_3-AddedOnRampEdge edge_0_3 edge_0_4 edge_1_0 edge_1_1 edge_1_1-AddedOffRampEdge edge_1_2 edge_1_3-AddedOnRampEdge edge_1_3 edge_1_4 edge_2_0 edge_2_1 edge_2_1-AddedOffRampEdge edge_2_5 edge_2_7 exit2"/>
-	<route id="entrance0_exit2" edges="entrance0 edge_0_8 edge_0_6 edge_0_3-AddedOnRampEdge edge_0_3 edge_0_4 edge_1_0 edge_1_1 edge_1_1-AddedOffRampEdge edge_1_2 edge_1_3-AddedOnRampEdge edge_1_3 edge_1_4 edge_2_0 edge_2_1 edge_2_1-AddedOffRampEdge edge_2_5 edge_2_7 exit2"/>
+	<route id="entrance0_exit2" edges="edge_0_8 edge_0_6 edge_0_3-AddedOnRampEdge edge_0_3 edge_0_4 edge_1_0 edge_1_1 edge_1_1-AddedOffRampEdge edge_1_2 edge_1_3-AddedOnRampEdge edge_1_3 edge_1_4 edge_2_0 edge_2_1 edge_2_1-AddedOffRampEdge edge_2_5 edge_2_7 exit2"/>
 	<route id="entrance1_exit2" edges="entrance1 edge_1_8 edge_1_6 edge_1_3-AddedOnRampEdge edge_1_3 edge_1_4 edge_2_0 edge_2_1 edge_2_1-AddedOffRampEdge edge_2_5 edge_2_7 exit2"/>
 </routes>

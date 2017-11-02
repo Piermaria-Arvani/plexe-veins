@@ -34,6 +34,7 @@ class NewPositionHelper : public BasePositionHelper
 		 * Removes a follower from the platoon
 		 */
 		virtual void removeFollower (int id);
+		virtual void removeLastFollower();
 
 		/**
 		 * Returns the id of the last vehicle of the platoon

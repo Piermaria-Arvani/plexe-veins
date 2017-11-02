@@ -55,7 +55,7 @@ void TraCIMobility::Statistics::watch(cSimpleModule& )
 }
 
 void TraCIMobility::Statistics::recordScalars(cSimpleModule& module)
-{
+{/*
 	if (firstRoadNumber != MY_INFINITY) module.recordScalar("firstRoadNumber", firstRoadNumber);
 	module.recordScalar("startTime", startTime);
 	module.recordScalar("totalTime", totalTime);
@@ -63,7 +63,7 @@ void TraCIMobility::Statistics::recordScalars(cSimpleModule& module)
 	if (minSpeed != MY_INFINITY) module.recordScalar("minSpeed", minSpeed);
 	if (maxSpeed != -MY_INFINITY) module.recordScalar("maxSpeed", maxSpeed);
 	module.recordScalar("totalDistance", totalDistance);
-	module.recordScalar("totalCO2Emission", totalCO2Emission);
+	module.recordScalar("totalCO2Emission", totalCO2Emission); */
 }
 
 void TraCIMobility::initialize(int stage)
@@ -128,7 +128,7 @@ void TraCIMobility::finish()
 {
 	statistics.stopTime = simTime();
 
-	statistics.recordScalars(*this);
+	//statistics.recordScalars(*this);
 
 	cancelAndDelete(startAccidentMsg);
 	cancelAndDelete(stopAccidentMsg);
@@ -192,8 +192,8 @@ void TraCIMobility::changePosition()
 	ASSERT(lastUpdate != simTime());
 
 	// keep statistics (for current step)
-	currentPosXVec.record(move.getStartPos().x);
-	currentPosYVec.record(move.getStartPos().y);
+	//currentPosXVec.record(move.getStartPos().x);
+	//currentPosYVec.record(move.getStartPos().y);
 
 	Coord nextPos = calculateAntennaPosition(roadPosition);
 	nextPos.z = move.getCurrentPosition().z;
@@ -208,12 +208,12 @@ void TraCIMobility::changePosition()
 		if (speed != -1) {
 			statistics.minSpeed = std::min(statistics.minSpeed, speed);
 			statistics.maxSpeed = std::max(statistics.maxSpeed, speed);
-			currentSpeedVec.record(speed);
+			//currentSpeedVec.record(speed);
 			if (last_speed != -1) {
 				double acceleration = (speed - last_speed) / updateInterval;
 				double co2emission = calculateCO2emission(speed, acceleration);
-				currentAccelerationVec.record(acceleration);
-				currentCO2EmissionVec.record(co2emission);
+				//currentAccelerationVec.record(acceleration);
+				//ScurrentCO2EmissionVec.record(co2emission);
 				statistics.totalCO2Emission+=co2emission * updateInterval.dbl();
 			}
 			last_speed = speed;

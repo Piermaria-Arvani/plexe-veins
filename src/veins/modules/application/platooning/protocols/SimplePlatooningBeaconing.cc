@@ -39,7 +39,6 @@ void SimplePlatooningBeaconing::handleSelfMsg(cMessage *msg) {
 		//sendPlatooningMessage(-1);
 
 		if(positionHelper->getLeaderId() != -1 && !positionHelper->isLeader()){
-
 			//getting leader data directly from sumo
 			std::string leaderSumoId = newPositionHelper->getLeaderSumoId();
 			double speed, acceleration, controllerAcceleration, sumoPosX, sumoPosY, sumoTime;

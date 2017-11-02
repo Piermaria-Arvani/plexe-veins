@@ -38,7 +38,7 @@ void BaseProtocol::initialize(int stage) {
 		nCollisions = 0;
 		busyTime = SimTime(0);
 		seq_n = 0;
-		recordData = 0;
+		//recordData = 0;
 
 		//get gates
 		lowerControlIn = findGate("lowerControlIn");
@@ -77,11 +77,11 @@ void BaseProtocol::initialize(int stage) {
 
 		//init messages for scheduleAt
 		sendBeacon = new cMessage("sendBeacon");
-		recordData = new cMessage("recordData");
+		//recordData = new cMessage("recordData");
 
 		//set names for output vectors
 		//own id
-		nodeIdOut.setName("nodeId");
+		/*nodeIdOut.setName("nodeId");
 		//channel busy time
 		busyTimeOut.setName("busyTime");
 		//mac layer collisions
@@ -92,15 +92,15 @@ void BaseProtocol::initialize(int stage) {
 		leaderDelayIdOut.setName("leaderDelayId");
 		frontDelayIdOut.setName("frontDelayId");
 		leaderDelayOut.setName("leaderDelay");
-		frontDelayOut.setName("frontDelay");
+		frontDelayOut.setName("frontDelay"); */
 
 		//subscribe to signals for channel busy state and collisions
 		findHost()->subscribe(sigChannelBusy, this);
 		findHost()->subscribe(sigCollision, this);
 
 		//init statistics collection. round to second
-		SimTime rounded = SimTime(floor(simTime().dbl() + 1), SIMTIME_S);
-		scheduleAt(rounded, recordData);
+		//SimTime rounded = SimTime(floor(simTime().dbl() + 1), SIMTIME_S);
+		//scheduleAt(rounded, recordData);
 
 	}
 
@@ -114,19 +114,19 @@ void BaseProtocol::finish() {
 		delete sendBeacon;
 		sendBeacon = 0;
 	}
-	if (recordData) {
+	/*if (recordData) {
 		if (recordData->isScheduled()) {
 			cancelEvent(recordData);
 		}
 		delete recordData;
 		recordData = 0;
-	}
+	}*/
 	BaseApplLayer::finish();
 }
 
 void BaseProtocol::handleSelfMsg(cMessage *msg) {
 
-	if (msg == recordData) {
+	/*if (msg == recordData) {
 
 		//if channel is currently busy, we have to split the amount of time between
 		//this period and the successive. so we just compute the channel busy time
@@ -138,11 +138,11 @@ void BaseProtocol::handleSelfMsg(cMessage *msg) {
 
 		//time for writing statistics
 		//node id
-		nodeIdOut.record(myId);
+		//nodeIdOut.record(myId);
 		//record busy time for this period
-		busyTimeOut.record(busyTime);
+		//busyTimeOut.record(busyTime);
 		//record collisions for this period
-		collisionsOut.record(nCollisions);
+		//collisionsOut.record(nCollisions);
 
 		//and reset counter
 		busyTime = SimTime(0);
@@ -150,7 +150,7 @@ void BaseProtocol::handleSelfMsg(cMessage *msg) {
 
 		scheduleAt(simTime() + SimTime(1, SIMTIME_S), recordData);
 
-	}
+	}*/
 
 }
 
@@ -235,16 +235,16 @@ void BaseProtocol::handleUnicastMsg(UnicastMessage *unicast) {
 		if (positionHelper->getLeaderId() == epkt->getVehicleId()) {
 			//check if this is at least the second message we have received
 			if (lastLeaderMsgTime.dbl() > 0) {
-				leaderDelayOut.record(simTime() - lastLeaderMsgTime);
-				leaderDelayIdOut.record(myId);
+				//leaderDelayOut.record(simTime() - lastLeaderMsgTime);
+				//leaderDelayIdOut.record(myId);
 			}
 			lastLeaderMsgTime = simTime();
 		}
 		if (positionHelper->getFrontId() == epkt->getVehicleId()) {
 			//check if this is at least the second message we have received
 			if (lastFrontMsgTime.dbl() > 0) {
-				frontDelayOut.record(simTime() - lastFrontMsgTime);
-				frontDelayIdOut.record(myId);
+				//frontDelayOut.record(simTime() - lastFrontMsgTime);
+				//frontDelayIdOut.record(myId);
 			}
 			lastFrontMsgTime = simTime();
 		}

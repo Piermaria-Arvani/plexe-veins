@@ -1,15 +1,32 @@
 [DEFAULT]
 defaultMap = default
 file = map-config
+failuresMap = failures
+carsNumberMap = carsNumber
 
 [params]
 resdir = ../results
 
 [config]
 config = Highway
-out = Highway
+out = JoinsStats
 map    = %(defaultMap)s
 mapFile = %(file)s
-prefix = highway
+prefix = js
 merge = 1
 
+[config]
+config = Highway
+out = FailuresStats
+map    = %(failuresMap)s
+mapFile = %(file)s
+prefix = failures
+merge = 0
+
+[config]
+config = Highway
+out = CarsNumberStats
+map    = %(carsNumberMap)s
+mapFile = %(file)s
+prefix = cn
+merge = 0

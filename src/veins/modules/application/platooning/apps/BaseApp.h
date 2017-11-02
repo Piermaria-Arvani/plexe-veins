@@ -73,17 +73,17 @@ class BaseApp : public BaseApplLayer
 		/**
 		 * Log data about vehicle
 		 */
-		virtual void logVehicleData(bool crashed = false);
+		//virtual void logVehicleData(bool crashed = false);
 
 		//output vectors for mobility stats
 		//id of the vehicle
-		cOutVector nodeIdOut;
+		//cOutVector nodeIdOut;
 		//distance and relative speed
-		cOutVector distanceOut, relSpeedOut;
+		//cOutVector distanceOut, relSpeedOut;
 		//speed and position
-		cOutVector speedOut, posxOut, posyOut;
+		//cOutVector speedOut, posxOut, posyOut;
 		//real acceleration and controller acceleration
-		cOutVector accelerationOut, controllerAccelerationOut;
+		//cOutVector accelerationOut, controllerAccelerationOut;
 
 		//messages for scheduleAt
 		cMessage *recordData;

@@ -35,21 +35,6 @@ void BaseApp::initialize(int stage) {
 	if (stage == 0) {
 		//when to stop simulation (after communications started)
 		simulationDuration = SimTime(par("simulationDuration").longValue());
-		//set names for output vectors
-		//distance from front vehicle
-		distanceOut.setName("distance");
-		//relative speed w.r.t. front vehicle
-		relSpeedOut.setName("relativeSpeed");
-		//vehicle id
-		nodeIdOut.setName("nodeId");
-		//current speed
-		speedOut.setName("speed");
-		//vehicle position
-		posxOut.setName("posx");
-		posyOut.setName("posy");
-		//vehicle acceleration
-		accelerationOut.setName("acceleration");
-		controllerAccelerationOut.setName("controllerAcceleration");
 	}
 
 	if (stage == 1) {
@@ -63,21 +48,9 @@ void BaseApp::initialize(int stage) {
 		if (traciVehicle->getVType().compare("vtypeauto") == 0){
 			newPostionHelper = FindModule<NewPositionHelper*>::findSubModule(getParentModule());
 			manager = FindModule<PlatoonsTrafficManager *>().findGlobalModule();
-
-			if(manager->isLeader(myId)){
-				platoon p = manager->getLeaderInfo(myId);
-				newPostionHelper->setIsLeader(true);
-				newPostionHelper->setPlatoon(p);
-			}else{
-				int myLeader = -1;
-				int frontVehicle = -1;
-				int backVehicle = -1;
-				manager->getFollowerInfo(myId, myLeader,frontVehicle,backVehicle);
-				newPostionHelper->setId(myId);
-				newPostionHelper->setLeaderId(myLeader);
-				newPostionHelper->setFrontId(frontVehicle);
-				newPostionHelper->setIsLeader(false);
-			}
+			platoon p = manager->getLeaderInfo(myId);
+			newPostionHelper->setIsLeader(true);
+			newPostionHelper->setPlatoon(p);
 		}
 
 		//connect application to protocol
@@ -100,13 +73,13 @@ void BaseApp::finish() {
 		delete recordData;
 		recordData = 0;
 	}
-	if (!crashHappened && !simulationCompleted) {
+	/*if (!crashHappened && !simulationCompleted) {
 		if (traciVehicle->isCrashed()) {
 			crashHappened = true;
 			logVehicleData(true);
 			endSimulation();
 		}
-	}
+	} */
 }
 
 void BaseApp::handleLowerMsg(cMessage *msg) {
@@ -179,7 +152,7 @@ void BaseApp::handleLowerMsg(cMessage *msg) {
 	delete unicast;
 }
 
-
+/*
 void BaseApp::logVehicleData(bool crashed) {
 	//get distance and relative speed w.r.t. front vehicle
 	double distance, relSpeed, acceleration, speed, controllerAcceleration, posX, posY, time;
@@ -198,6 +171,7 @@ void BaseApp::logVehicleData(bool crashed) {
 	posxOut.record(pos.x);
 	posyOut.record(pos.y);
 }
+*/
 
 void BaseApp::handleLowerControl(cMessage *msg) {
 	delete msg;
@@ -219,8 +193,13 @@ void BaseApp::handleSelfMsg(cMessage *msg) {
 		if (myId == 0 && simTime() > simulationDuration)
 			stopSimulation();
 		//log mobility data
-		logVehicleData();
+		//logVehicleData();
 		//re-schedule next event
+		if (traciVehicle->isCrashed()) {
+			crashHappened = true;
+			//logVehicleData(true);
+			endSimulation();
+		}
 		scheduleAt(simTime() + SimTime(100, SIMTIME_MS), recordData);
 	}
 }

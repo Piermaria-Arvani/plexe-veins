@@ -54,13 +54,13 @@ class BaseProtocol : public BaseApplLayer {
 		SimTime lastFrontMsgTime;
 
 		//own id for statistics
-		cOutVector nodeIdOut;
+		//cOutVector nodeIdOut;
 
 		//output vectors for busy time and collisions
-		cOutVector busyTimeOut, collisionsOut;
+		//cOutVector busyTimeOut, collisionsOut;
 
 		//output vector for delays
-		cOutVector leaderDelayIdOut, frontDelayIdOut, leaderDelayOut, frontDelayOut;
+		//cOutVector leaderDelayIdOut, frontDelayIdOut, leaderDelayOut, frontDelayOut;
 
 	protected:
 
@@ -106,7 +106,7 @@ class BaseProtocol : public BaseApplLayer {
 		GateConnections connections;
 
 		//messages for scheduleAt
-		cMessage *sendBeacon, *recordData;
+		cMessage *sendBeacon;// *recordData;
 
 		/**
 		 * NB: this method must be overridden by inheriting classes, BUT THEY MUST invoke the super class
@@ -178,7 +178,7 @@ class BaseProtocol : public BaseApplLayer {
 
 		BaseProtocol() {
 			sendBeacon = 0;
-			recordData = 0;
+			//recordData = 0;
 			usedGates = 0;
 		}
 		virtual ~BaseProtocol();

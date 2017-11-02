@@ -46,6 +46,8 @@ simple HighwayScenario like BaseScenario
         string vehicleType = default("");
 
         int headerLength @unit("bit") = default(0bit);
+        
+        int speedRangeAccepted;
 
         @display("i=block/app2");
         @class(HighwayScenario);

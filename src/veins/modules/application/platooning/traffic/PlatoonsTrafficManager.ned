@@ -32,6 +32,7 @@ simple PlatoonsTrafficManager like TraCIBaseTrafficManager {
         int platoonSize;
         //number of lanes
         int nLanes;
+        volatile double distributionInsertionTime;
         //sumo vehicle type for platooning cars
         string platooningVType;
         //insert distance and headway. distance is computed as:

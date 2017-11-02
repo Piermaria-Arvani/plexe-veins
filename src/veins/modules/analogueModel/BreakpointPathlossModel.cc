@@ -38,7 +38,7 @@ void BreakpointPathlossModel::filterSignal(AirFrame *frame, const Coord& senders
 	debugEV << "attenuation is: " << attenuation << endl;
 
 	if(debug) {
-	  pathlosses.record(10*log10(attenuation)); // in dB
+	  //pathlosses.record(10*log10(attenuation)); // in dB
 	}
 
 	//const DimensionSet& domain = DimensionSet::timeDomain;

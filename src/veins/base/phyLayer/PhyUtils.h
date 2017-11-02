@@ -363,7 +363,7 @@ public:
 		assert(newChannel > -1);
 		assert(newChannel < nbChannels);
 		currentChannel = newChannel;
-		radioChannels.record(currentChannel);
+		//radioChannels.record(currentChannel);
 	}
 
 	/**

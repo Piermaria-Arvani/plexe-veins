@@ -31,9 +31,14 @@ void NewPositionHelper::removeFollower(int id){
 	for(unsigned i = 0; i < p.size(); i++){
 		if (p[i] == id){
 			p.erase (p.begin() + i);
-			sumoIds.erase(sumoIds.begin() + (i));
+			sumoIds.erase(sumoIds.begin() + i);
 		}
 	}
+}
+
+void NewPositionHelper::removeLastFollower(){
+	p.pop_back();
+	sumoIds.pop_back();
 }
 
 platoon& NewPositionHelper::getPlatoon(){

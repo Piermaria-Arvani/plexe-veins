@@ -20,6 +20,8 @@
 
 #include <veins/modules/mobility/traci/TraCIBaseTrafficManager.h>
 typedef std::vector<int> platoon;
+typedef std::pair<int,int> vehicleToBeInserted;
+typedef std::vector<vehicleToBeInserted> vehiclesPerRamp;
 
 class PlatoonsTrafficManager : public TraCIBaseTrafficManager
 {
@@ -27,10 +29,11 @@ class PlatoonsTrafficManager : public TraCIBaseTrafficManager
 	public:
 
 		virtual void initialize(int stage);
-		virtual void printMatrix();
 		virtual bool isLeader(unsigned int myId);
 		virtual platoon& getLeaderInfo(int myId);
 		virtual void getFollowerInfo(int myId, int& leaderId, int& frontVehicle, int& backVehicle);
+		virtual void increaseExitedCars();
+		virtual int getRouteNumber(std::string routeId);
 		virtual void finish();
 
 		PlatoonsTrafficManager() {
@@ -43,17 +46,33 @@ class PlatoonsTrafficManager : public TraCIBaseTrafficManager
 			platoonSize = 0;
 			nCars = 0;
 			nLanes = 0;
+			counterVehiclesFromBegin = 0;
+			counter = 0;
+			carsCounter = 0;
+			exitedCars = 0;
+			routeNumber = 0;
 		}
 
 	protected:
 
 		//this is used to start traffic generation
 		cMessage *insertPlatoonMessage;
+		cMessage *insertVehicleFromBegin;
+		cMessage *insertVehicleInRamps;
+		cMessage *insertVehicle;
+		cMessage *recordNcars;
 
 		//inserisce un nuovo veicolo
 		virtual void insertFollower(int followerId, int leaderId);
 
 		void insertPlatoons();
+
+		void insertVehiclesFromBegin();
+		void insertVehiclesInRamps();
+
+		void insertVehicles();
+
+		void recordCarsNumber();
 
 		virtual void handleSelfMsg(cMessage *msg);
 
@@ -68,6 +87,16 @@ class PlatoonsTrafficManager : public TraCIBaseTrafficManager
 		int platoonSize;
 		//number of lanes
 		int nLanes;
+		unsigned int counterVehiclesFromBegin;
+		//
+		unsigned int counter;
+		//
+		int routeNumber;
+
+		//it counts the number of vehicles that have entered the highway
+		int carsCounter;
+		//it count the number of vehicles that have left the highway
+		unsigned int exitedCars;
 		//insert distance
 		double platoonInsertDistance;
 		//insert headway
@@ -77,10 +106,21 @@ class PlatoonsTrafficManager : public TraCIBaseTrafficManager
 		//sumo vehicle type of platooning cars
 		std::string platooningVType;
 
+		cPar *distributionInsertionTime;
+
+		//output vectors for mobility stats
+		cOutVector carNumber;
+		cOutVector exitedCarsNumber;
+
 		virtual void scenarioLoaded();
 
 	private:
+		virtual void printMatrix();
 		std::vector<platoon> platoons;
+		std::vector<vehiclesPerRamp> vehiclesToBeInsertedInRamps;
+		std::vector<vehicleToBeInserted> vehiclesToBeInsertedFromBegin;
+		//vector of all the routes ids
+		std::vector<std::string> routeIds;
 };
 
 #endif

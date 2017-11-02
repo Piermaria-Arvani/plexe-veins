@@ -1,7 +1,17 @@
 #default setup
 [default]
-module = scenario.node[*].appl
-names = nodeId,distance,relativeSpeed,speed,acceleration,controllerAcceleration
-2 = caccXi
-3 = caccOmegaN
-4 = runNumber
+module = scenario.node[*].scenario
+names = nodeId,speed,posx,posy,platoonSize
+2 = runNumber
+3 = mean
+
+#setup for failures
+[failures]
+inherit = default
+names = nodeId, failure
+
+#number of cars
+[carsNumber]
+module = scenario.traffic
+names = carsNumber, exitedCarsNumber
+

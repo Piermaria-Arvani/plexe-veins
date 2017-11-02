@@ -37,8 +37,26 @@ void PlatoonsTrafficManager::initialize(int stage) {
 		insertPlatoonMessage = new cMessage("");
 		scheduleAt(platoonInsertTime, insertPlatoonMessage);
 
+		insertVehicleFromBegin = new cMessage("insert from begin");
+		insertVehicleInRamps = new cMessage("insert in ramps");
+		insertVehicle = new cMessage("insert");
+
+		recordNcars = new cMessage ("record cars number");
+		scheduleAt(simTime() + SimTime(60), recordNcars);
+
+		carNumber.setName("carsNumber");
+		exitedCarsNumber.setName("exitedCarsNumber");
+
+		distributionInsertionTime = &par("distributionInsertionTime");
 	}
 
+}
+
+void PlatoonsTrafficManager::recordCarsNumber(){
+	carNumber.record(carsCounter);
+	exitedCarsNumber.record(exitedCars);
+	std::cout<<"cars number = "<<carsCounter<<"exitedCars"<<exitedCars<<endl;
+	scheduleAt(simTime() + SimTime(60), recordNcars);
 }
 
 void PlatoonsTrafficManager::scenarioLoaded() {
@@ -54,71 +72,142 @@ void PlatoonsTrafficManager::handleSelfMsg(cMessage *msg) {
 
 	if (msg == insertPlatoonMessage) {
 		insertPlatoons();
+	}else if (msg == insertVehicleInRamps){
+		insertVehiclesInRamps();
+	}else if(msg == insertVehicleFromBegin){
+		insertVehiclesFromBegin();
+	}else if(msg == recordNcars){
+		recordCarsNumber();
+	}else if(msg == insertVehicle){
+		insertVehicles();
 	}
 
 }
 
 void PlatoonsTrafficManager::insertPlatoons() {
 
-	//vector of all the routes ids
-	std::vector<std::string> routeIds;
+
 	std::list<std::string> routes = commandInterface->getRouteIds();
 	EV << "Having currently " << routes.size() << " routes in the scenario" << std::endl;
 	for (std::list<std::string>::const_iterator i = routes.begin(); i != routes.end(); ++i) {
 		std::string routeId = *i;
 		EV << routeId << std::endl;
 		routeIds.push_back(routeId);
-		std::cout<<"platoonsTrafficManager: "<< routeId<<endl;
 		std::list<std::string> routeEdges = commandInterface->route(routeId).getRoadIds();
 		std::string firstEdge = *(routeEdges.begin());
 		EV << "First Edge of route " << routeId << " is " << firstEdge << std::endl;
 		routeStartLaneIds[routeId] = laneIdsOnEdge[firstEdge];
 	}
 
-
-	//compute intervehicle distance
-	double distance = platoonInsertSpeed / 3.6 * platoonInsertHeadway + platoonInsertDistance;
-	double platoonDistance = platoonInsertSpeed / 3.6 * platoonLeaderHeadway;
-	//total length for one lane
-	double totalLength = nCars + (nCars-1) * platoonDistance;
-	//number of highway lanes
-	//TODO: take it directly
-	int maxL = 3;
-	int routeNumber = routeIds.size();
-	//for each lane, we create an offset to have misaligned platoons
-	double *laneOffset = new double[nCars];
-	for (int l = 0; l < nCars; l++)
-		laneOffset[l] = uniform(0, 10);
+	routeNumber = routeIds.size() -1 ;
+	double time = 1/distributionInsertionTime->doubleValue();
+	scheduleAt(simTime() + SimTime(time), insertVehicle);
 
 
-	double currentPos = totalLength;
-	int l = 0;
-	int routeCounter = 0;
-
-	for(int i = 0; i < nCars; i++){
+	/*for(int i = 0; i < nCars; i++){
 		std::string route = routeIds[routeCounter];
 		std::string str1 = route.substr (0,5);
-		if (str1.compare("begin") != 0){
-			//automated.speed = 20;
-			std::cout<<"route:"<<route<<"this one would be go slower"<<endl;
+		if (str1.compare("begin") != 0 && route.compare("platoon_route") != 0){
+			std::string temp = route.substr (8,1); // TODO: take in consideration integers higher than 9
+			unsigned int index = atoi(temp.c_str());
+			std::pair<int, int> pair_temp = std::make_pair(i,routeCounter);
+			if(vehiclesToBeInsertedInRamps.size() <= index){
+				vehiclesToBeInsertedInRamps.push_back(vehiclesPerRamp ());
+				vehiclesToBeInsertedInRamps.back().push_back(pair_temp);
+			}else{
+				vehiclesToBeInsertedInRamps[index].push_back(pair_temp);
+			}
+		}else{
+			std::pair<int, int> pair_temp = std::make_pair(i,routeCounter);
+			vehiclesToBeInsertedFromBegin.push_back(pair_temp);
 		}
-		automated.position = currentPos - laneOffset[i];
-		std::cout<<"position: "<<automated.position<<",currentPos:"<<currentPos<<", laneoffset: "<<laneOffset[i]<<",";
-		automated.lane = l;
-		addVehicleToQueue(0 /*routeCounter*/, automated);
-		platoons.push_back(platoon());
-		platoons.back().push_back(i);
-		currentPos -= (4 + distance);
 
-		l < maxL? l++ : l = 0;
-		routeCounter < routeNumber-1? routeCounter++ : routeCounter = 0;
-		std::cout<<"l:"<<l<<endl;
+		routeCounter = (int)cComponent::uniform(0, routeNumber);
 	}
 
+	if(vehiclesToBeInsertedFromBegin.size()>0){
+		double time = 1/distributionInsertionTime->doubleValue();
+		if(time < 0.5)
+			time = 0.5;
+		scheduleAt(simTime() + SimTime(time), insertVehicleFromBegin);
+	}
 
-	printMatrix();
-	delete [] laneOffset;
+	if(vehiclesToBeInsertedInRamps.size()>0){
+		double time = 1/distributionInsertionTime->doubleValue();
+		if(time < 0.5)
+			time = 0.5;
+		scheduleAt(simTime() + SimTime(time), insertVehicleInRamps);
+	}*/
 
+
+}
+
+void PlatoonsTrafficManager::insertVehicles(){
+	int routeCounter = (int) round(uniform(0, routeNumber));
+	std::string route = routeIds[routeCounter];
+	std::string str1 = route.substr (0,5);
+	if (str1.compare("begin") != 0 && route.compare("platoon_route") != 0){
+		automated.position = 0;
+		automated.speed = 20;
+		automated.lane = 0;
+		addVehicleToQueue(routeCounter, automated);
+		platoons.push_back(platoon());
+		platoons.back().push_back(carsCounter);
+	}else{
+		automated.position = 4;
+		automated.lane = (int)round(uniform(0,2)); //TODO: take the max number of lanes from sumo
+		addVehicleToQueue(routeCounter, automated);
+		platoons.push_back(platoon());
+		platoons.back().push_back(carsCounter);
+	}
+	carsCounter++;
+
+	if(carsCounter < nCars){
+		double time = 1/distributionInsertionTime->doubleValue();
+		scheduleAt(simTime() + SimTime(time), insertVehicle);
+	}
+}
+
+void PlatoonsTrafficManager::insertVehiclesFromBegin(){
+	if(vehiclesToBeInsertedFromBegin.size() > counterVehiclesFromBegin){
+		automated.position = 4;
+		automated.lane = (int)round(uniform(0,2)); //TODO: take the max number of lanes from sumo
+		addVehicleToQueue(vehiclesToBeInsertedFromBegin[counterVehiclesFromBegin].second, automated);
+		platoons.push_back(platoon());
+		platoons.back().push_back(carsCounter);
+
+		carsCounter++;
+		counterVehiclesFromBegin++;
+
+		double time = 1/distributionInsertionTime->doubleValue();
+		if(time < 0.5)
+			time = 0.5;
+		scheduleAt(simTime() + SimTime(time), insertVehicleFromBegin);
+	}
+}
+
+void PlatoonsTrafficManager::insertVehiclesInRamps(){
+	bool noVehicles = true;
+	for(unsigned int i = 0; i < vehiclesToBeInsertedInRamps.size(); i++){
+		if(!vehiclesToBeInsertedInRamps[i].empty() && vehiclesToBeInsertedInRamps[i].size() > counter){
+			automated.position = 0;
+			automated.speed = 20;
+			automated.lane = 0;
+			addVehicleToQueue(vehiclesToBeInsertedInRamps[i][counter].second, automated);
+			platoons.push_back(platoon());
+			platoons.back().push_back(carsCounter);
+			carsCounter++;
+
+			noVehicles = false;
+		}
+	}
+	if(!noVehicles){
+		counter++;
+		double time = 1/distributionInsertionTime->doubleValue();
+		if(time < 0.5)
+			time = 0.5;
+		scheduleAt(simTime() + SimTime(time), insertVehicleInRamps);
+	}
 }
 
 void PlatoonsTrafficManager::insertFollower(int followerId, int leaderId){
@@ -131,6 +220,16 @@ void PlatoonsTrafficManager::insertFollower(int followerId, int leaderId){
 	}
 }
 
+int PlatoonsTrafficManager::getRouteNumber(std::string routeId){
+	int routeNumber = -1;
+	for(unsigned int i = 0; i < routeIds.size(); i++){
+		if(routeId ==  routeIds[i])
+			routeNumber = i;
+	}
+
+	return routeNumber;
+}
+
 void PlatoonsTrafficManager::printMatrix(){
 	std::cout << endl;
 	for(std::vector<std::vector<int> >::iterator it = platoons.begin(); it != platoons.end(); ++it){
@@ -141,10 +240,14 @@ void PlatoonsTrafficManager::printMatrix(){
 	}
 }
 
-bool PlatoonsTrafficManager::isLeader(unsigned int myId){
-    bool leader = (myId < platoons.size())? true : false;;
+void PlatoonsTrafficManager::increaseExitedCars(){
+	exitedCars++;
+}
 
-    return leader;
+bool PlatoonsTrafficManager::isLeader(unsigned int myId){
+	bool leader = (myId < platoons.size())? true : false;;
+
+	return leader;
 }
 
 platoon& PlatoonsTrafficManager::getLeaderInfo(int myId){
@@ -176,5 +279,17 @@ void PlatoonsTrafficManager::finish() {
 	if (insertPlatoonMessage) {
 		cancelAndDelete(insertPlatoonMessage);
 		insertPlatoonMessage = 0;
+	}
+	if (insertVehicleInRamps) {
+		cancelAndDelete(insertVehicleInRamps);
+		insertVehicleInRamps = 0;
+	}
+	if (insertVehicleFromBegin) {
+		cancelAndDelete(insertVehicleFromBegin);
+		insertVehicleFromBegin = 0;
+	}
+	if (recordNcars) {
+		cancelAndDelete(recordNcars);
+		recordNcars = 0;
 	}
 }

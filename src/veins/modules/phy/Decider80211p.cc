@@ -547,11 +547,12 @@ void Decider80211p::switchToTx() {
 }
 
 void Decider80211p::finish() {
+	/*
 	simtime_t totalTime = simTime() - myStartTime;
 	phy->recordScalar("busyTime", myBusyTime / totalTime.dbl());
 	if (collectCollisionStats) {
 		phy->recordScalar("ncollisions", collisions);
-	}
+	}*/
 }
 
 Decider80211p::~Decider80211p() {}

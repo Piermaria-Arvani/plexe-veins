@@ -114,7 +114,11 @@ std::string TraCICommandInterface::Vehicle::getLaneId() {
 }
 
 int32_t TraCICommandInterface::Vehicle::getLaneIndex() {
-	return traci->genericGetInt(CMD_GET_VEHICLE_VARIABLE, nodeId, VAR_LANE_INDEX, RESPONSE_GET_VEHICLE_VARIABLE);
+	int32_t sumoLane = traci->genericGetInt(CMD_GET_VEHICLE_VARIABLE, nodeId, VAR_LANE_INDEX, RESPONSE_GET_VEHICLE_VARIABLE);
+	int32_t nLanes = getLanesCount();
+	if (nLanes == 4)
+		sumoLane -= 1;
+	return sumoLane;
 }
 
 std::string TraCICommandInterface::Vehicle::getTypeId() {

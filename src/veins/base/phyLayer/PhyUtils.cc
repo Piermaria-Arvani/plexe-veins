@@ -102,10 +102,10 @@ Radio::Radio(int numRadioStates,
 
 	radioStates.setName("RadioState");
 	radioStates.setEnabled(recordStats);
-	radioStates.record(initialState);
+	//radioStates.record(initialState);
 	radioChannels.setName("RadioChannel");
 	radioChannels.setEnabled(recordStats);
-	radioChannels.record(currentChannel);
+	//radioChannels.record(currentChannel);
 
 	// allocate memory for one dimension
 	swTimes = new simtime_t* [numRadioStates];
@@ -162,7 +162,7 @@ simtime_t Radio::switchTo(int newState, simtime_t_cref now)
 	nextState = newState;
 	int lastState = state;
 	state = SWITCHING;
-	radioStates.record(state);
+	//radioStates.record(state);
 
 	// make entry to RSAM
 	makeRSAMEntry(now, state);
@@ -193,7 +193,7 @@ void Radio::endSwitch(simtime_t_cref now)
 
 	// set the current state finally to the next state
 	state = nextState;
-	radioStates.record(state);
+	//radioStates.record(state);
 
 	// make entry to RSAM
 	makeRSAMEntry(now, state);

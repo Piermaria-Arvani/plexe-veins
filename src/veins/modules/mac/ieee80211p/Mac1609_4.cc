@@ -393,6 +393,7 @@ void Mac1609_4::finish() {
 		cancelAndDelete(nextChannelSwitch);
 
 	//stats
+	/*
 	recordScalar("ReceivedUnicastPackets",statsReceivedPackets);
 	recordScalar("ReceivedBroadcasts",statsReceivedBroadcasts);
 	recordScalar("SentPackets",statsSentPackets);
@@ -405,6 +406,7 @@ void Mac1609_4::finish() {
 	recordScalar("SlotsBackoff",statsSlotsBackoff);
 	recordScalar("NumInternalContention",statsNumInternalContention);
 	recordScalar("totalBusyTime",statsTotalBusyTime.dbl());
+	*/
 
 }
 
